@@ -23,7 +23,7 @@ router.post('/giris', async (req, res) => {
   }
 
   try {
-    const result = await db.query('SELECT * FROM users WHERE username = $1', [username.trim()]);
+    const result = await db.query('SELECT * FROM users WHERE LOWER(username) = LOWER($1)', [username.trim()]);
     const user = result.rows[0];
     if (!user) {
       return res.render('login', { error: 'Kullanıcı bulunamadı' });

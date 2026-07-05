@@ -25,7 +25,7 @@ router.post('/admin/olustur', authenticate, requireRole('super_admin'), async (r
   }
 
   try {
-    const existingRes = await db.query('SELECT id FROM users WHERE username = $1', [username.trim()]);
+    const existingRes = await db.query('SELECT id FROM users WHERE LOWER(username) = LOWER($1)', [username.trim()]);
     const existing = existingRes.rows[0];
     if (existing) {
       return res.render('admin/create', { error: 'Bu kullanıcı adı zaten var' });
