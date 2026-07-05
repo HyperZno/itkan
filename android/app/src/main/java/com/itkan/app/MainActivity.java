@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         // SUNUCU ADRESİNİZİ YAZIN
         // Not: Bilgisayarda yerel test yaparken bilgisayarınızın yerel IP adresini yazın (Örn: http://192.168.1.100:3000)
         // Canlı sunucuya geçtiğinizde alan adınızı yazın (Örn: https://itkan-kurs.com)
-        webView.loadUrl("http://192.168.1.117:3000");
+        webView.loadUrl("https://itkan-nu.vercel.app/");
     }
 
     // Android geri tuşu ile WebView geçmişinde geri gitme
