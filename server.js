@@ -67,8 +67,16 @@ app.get('/', (req, res) => {
   }
 });
 
-initialize();
-
-app.listen(PORT, () => {
-  console.log(`İTKAN çalışıyor: http://localhost:${PORT}`);
+initialize().then(() => {
+  console.log('Database initialized successfully.');
+}).catch(err => {
+  console.error('Failed to initialize database:', err);
 });
+
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`İTKAN çalışıyor: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

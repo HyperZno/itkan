@@ -1,127 +1,125 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+require('dotenv').config();
+const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-const db = new Database(path.join(__dirname, 'itkan.db'));
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' || process.env.DATABASE_URL.includes('supabase')
+    ? { rejectUnauthorized: false }
+    : false
+});
 
-function initialize() {
-  db.exec(`
+async function initialize() {
+  // Create tables using PostgreSQL syntax
+  await db.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      display_name TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'admin',
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      display_name VARCHAR(255) NOT NULL,
+      role VARCHAR(50) NOT NULL DEFAULT 'admin',
       password_changes INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS classes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
       description TEXT DEFAULT '',
       created_by INTEGER REFERENCES users(id),
       is_active INTEGER DEFAULT 1,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS students (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      surname TEXT DEFAULT '',
-      tc_kimlik TEXT DEFAULT '',
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      surname VARCHAR(255) DEFAULT '',
+      tc_kimlik VARCHAR(20) DEFAULT '',
       age INTEGER DEFAULT 0,
       class_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
-      school_grade TEXT DEFAULT '',
-      parent_name TEXT DEFAULT '',
-      phone TEXT DEFAULT '',
+      school_grade VARCHAR(100) DEFAULT '',
+      parent_name VARCHAR(255) DEFAULT '',
+      phone VARCHAR(50) DEFAULT '',
       address TEXT DEFAULT '',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS attendance_sessions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       class_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
       date DATE NOT NULL,
       created_by INTEGER REFERENCES users(id),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS attendance_records (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       session_id INTEGER REFERENCES attendance_sessions(id) ON DELETE CASCADE,
       student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
-      status TEXT NOT NULL DEFAULT 'present',
-      UNIQUE(session_id, student_id)
+      status VARCHAR(50) NOT NULL DEFAULT 'present',
+      CONSTRAINT unique_session_student UNIQUE(session_id, student_id)
     );
 
     CREATE TABLE IF NOT EXISTS surahs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
       ayah_count INTEGER NOT NULL,
       order_index INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS elifba_topics (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
       lesson_number INTEGER NOT NULL,
       description TEXT DEFAULT '',
       url TEXT DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS homework (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
-      type TEXT NOT NULL DEFAULT 'surah',
+      type VARCHAR(50) NOT NULL DEFAULT 'surah',
       surah_id INTEGER REFERENCES surahs(id),
       elifba_topic_id INTEGER REFERENCES elifba_topics(id),
       start_ayah INTEGER DEFAULT 1,
       end_ayah INTEGER,
-      status TEXT NOT NULL DEFAULT 'not_started',
+      status VARCHAR(50) NOT NULL DEFAULT 'not_started',
       assigned_by INTEGER REFERENCES users(id),
       checked_by INTEGER REFERENCES users(id),
       assigned_date DATE NOT NULL,
       due_date DATE,
       notes TEXT DEFAULT '',
-      checked_date DATETIME,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      checked_date TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS teacher_notes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       class_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
       content TEXT NOT NULL,
       created_by INTEGER REFERENCES users(id),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  try {
-    db.exec("ALTER TABLE elifba_topics ADD COLUMN url TEXT DEFAULT ''");
-  } catch (e) {}
+  const surahCount = await db.query('SELECT COUNT(*) as count FROM surahs');
+  if (parseInt(surahCount.rows[0].count, 10) === 0) {
+    await seedSurahs();
+  }
 
-  try {
-    db.exec("ALTER TABLE students ADD COLUMN school_grade TEXT DEFAULT ''");
-  } catch (e) {}
+  const elifbaCount = await db.query('SELECT COUNT(*) as count FROM elifba_topics');
+  if (parseInt(elifbaCount.rows[0].count, 10) !== 30) {
+    await seedElifbaTopics();
+  }
 
-  try {
-    db.exec("ALTER TABLE users ADD COLUMN password_changes INTEGER DEFAULT 0");
-  } catch (e) {}
-
-  const surahCount = db.prepare('SELECT COUNT(*) as count FROM surahs').get();
-  if (surahCount.count === 0) seedSurahs();
-
-  const elifbaCount = db.prepare('SELECT COUNT(*) as count FROM elifba_topics').get();
-  if (elifbaCount.count !== 30) seedElifbaTopics();
-
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users WHERE role = ?').get('super_admin');
-  if (userCount.count === 0) seedSuperAdmin();
+  const userCount = await db.query('SELECT COUNT(*) as count FROM users WHERE role = $1', ['super_admin']);
+  if (parseInt(userCount.rows[0].count, 10) === 0) {
+    await seedSuperAdmin();
+  }
 }
 
-function seedSurahs() {
+async function seedSurahs() {
   const surahs = [
     ["Fatiha",7,1],["Bakara",286,2],["Al-i İmran",200,3],["Nisa",176,4],["Maide",120,5],
     ["En'am",165,6],["A'raf",206,7],["Enfal",75,8],["Tevbe",129,9],["Yunus",109,10],
@@ -132,7 +130,7 @@ function seedSurahs() {
     ["Lokman",34,31],["Secde",30,32],["Ahzab",73,33],["Sebe'",54,34],["Fatır",45,35],
     ["Yasin",83,36],["Saffat",182,37],["Sad",88,38],["Zümer",75,39],["Mü'min",85,40],
     ["Fussilet",54,41],["Şura",53,42],["Zuhruf",89,43],["Duhan",59,44],["Casiye",37,45],
-    ["Ahkaf",35,46],["Muhammed",38,47],["Fetih",29,48],["Hucurat",18,49],["Kaf",45,50],
+    ["Ahkaf",35,46],["Muhammed",38,47],["Fetih",29,48],["Kaf",45,50],
     ["Zariyat",60,51],["Tur",49,52],["Necm",62,53],["Kamer",55,54],["Rahman",78,55],
     ["Vakıa",96,56],["Hadid",29,57],["Mücadele",22,58],["Haşr",24,59],["Mümtehine",13,60],
     ["Saff",14,61],["Cuma",11,62],["Münafikun",11,63],["Teğabun",18,64],["Talâk",12,65],
@@ -145,15 +143,23 @@ function seedSurahs() {
     ["Alak",19,96],["Kadir",5,97],["Beyyine",8,98],["Zilzal",8,99],["Adiyat",11,100],
     ["Karia",11,101],["Tekasür",8,102],["Asr",3,103],["Hümeze",9,104],["Fil",5,105],
     ["Kureyş",4,106],["Maun",7,107],["Kevser",3,108],["Kafirun",6,109],["Nasr",3,110],
-    ["Tebbet",5,111],["İhlas",4,112],["Felak",5,113],["Nas",6,114]
+    ["Tebbet",5,111],["İhlas",4,112],["Felak",5,113],["Nas",6,114], ["Hucurat", 18, 49]
   ];
-  const insert = db.prepare('INSERT INTO surahs (name, ayah_count, order_index) VALUES (?, ?, ?)');
-  const batch = db.transaction(() => { for (const s of surahs) insert.run(s[0], s[1], s[2]); });
-  batch();
+
+  let values = [];
+  let placeholders = [];
+  let index = 1;
+  for (const s of surahs) {
+    placeholders.push(`($${index}, $${index + 1}, $${index + 2})`);
+    values.push(s[0], s[1], s[2]);
+    index += 3;
+  }
+  const query = `INSERT INTO surahs (name, ayah_count, order_index) VALUES ${placeholders.join(', ')}`;
+  await db.query(query, values);
 }
 
-function seedElifbaTopics() {
-  db.prepare('DELETE FROM elifba_topics').run();
+async function seedElifbaTopics() {
+  await db.query('DELETE FROM elifba_topics');
 
   const topics = [
     [1, 'HARFLER', 'Kuran-ı Kerim harflerini tanıma', 'https://kuran.diyanet.gov.tr/elifba/#/elifba/harfler'],
@@ -177,9 +183,9 @@ function seedElifbaTopics() {
     [19, 'İDĞÂM-I BİLA ĞUNNE', 'Ğunnesiz idğam kuralı', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/idgami-bila-gunne'],
     [20, 'İDĞÂM-I MEA’L–ĞUNNE', 'Ğunmeli idğam kuralı', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/idgami-meal-gunne'],
     [21, 'İDĞÂM-I MİSLEYN MEA’L–ĞUNNE', 'Misleyn meal ğunne kuralı', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/idgami-misleyn-meal-gunne'],
-    [22, 'İKLÂB - İHFÂ-İ ŞEFEVİYYE', 'Nunun mime çevrilmesi ve dudak ihfası', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/iklab-ihfai-sefevviyye'],
-    [23, 'İDĞÂM-I MİSLEYN BİLÂ ĞUNNE', 'Misleyn bila ğunne kuralı', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/idgami-misleyn-bila-gunne'],
-    [24, 'İDĞÂM-I MÜTEKÂRİBEYN İDĞÂM-I MÜTECÂNİSEYN', 'Mütekaribeyn ve mütecaniseyn idğamları', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/idgami-mutekaribeyn-idgami-mütecaniseyn'],
+    [22, 'İDĞÂM-I MİSLEYN BİLÂ ĞUNNE', 'Misleyn bila ğunne kuralı', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/idgami-misleyn-bila-gunne'],
+    [23, 'İKLÂB - İHFÂ-İ ŞEFEVİYYE', 'Nunun mime çevrilmesi ve dudak ihfası', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/iklab-ihfai-sefevviyye'],
+    [24, 'İDĞÂM-I MÜTEKÂRİBEYN İDĞÂM-I MÜTECÂNİSEYN', 'Mütekaribeyn ve mütecaniseyn idğamları', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/idgami-mutekaribeyn-idgami-m%C3%BCtecaniseyn'],
     [25, 'KALKALE', 'Kalkale harfleri ve okunuşu', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/kalkale'],
     [26, 'MEDD-İ TABÎÎ - MEDD-İ MUTTASIL-MEDD-İ MUNFASIL', 'Asli med ve uzatma çeşitleri 1', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/meddi-tabii-muttasil-munfasil'],
     [27, 'MEDD-İ LÂZIM - MEDD-İ ÂRIZ-MEDD-İ LÎN', 'Uzatma çeşitleri 2', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/meddi-lazim-ariz-lin'],
@@ -187,15 +193,23 @@ function seedElifbaTopics() {
     [29, 'TENVİNLİ KELİMELERDEN GEÇİŞ', 'Tenvinden sonra geçiş vaslı', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/tenvinli-kelimelerden-gecis'],
     [30, 'UYGULAMA', 'Genel Kur\'an okuma uygulamaları', 'https://kuran.diyanet.gov.tr/elifba/#/tecvid/uygulama']
   ];
-  const insert = db.prepare('INSERT INTO elifba_topics (lesson_number, name, description, url) VALUES (?, ?, ?, ?)');
-  const batch = db.transaction(() => { for (const t of topics) insert.run(t[0], t[1], t[2], t[3]); });
-  batch();
+
+  let values = [];
+  let placeholders = [];
+  let index = 1;
+  for (const t of topics) {
+    placeholders.push(`($${index}, $${index + 1}, $${index + 2}, $${index + 3})`);
+    values.push(t[0], t[1], t[2], t[3]);
+    index += 4;
+  }
+  const query = `INSERT INTO elifba_topics (lesson_number, name, description, url) VALUES ${placeholders.join(', ')}`;
+  await db.query(query, values);
 }
 
-function seedSuperAdmin() {
+async function seedSuperAdmin() {
   const hash = bcrypt.hashSync('admin123', 10);
-  db.prepare('INSERT INTO users (username, password, display_name, role) VALUES (?, ?, ?, ?)').run('admin', hash, 'Süper Admin', 'super_admin');
-  console.log('Süper admin: admin / admin123');
+  await db.query('INSERT INTO users (username, password, display_name, role) VALUES ($1, $2, $3, $4)', ['admin', hash, 'Süper Admin', 'super_admin']);
+  console.log('Süper admin tanımlandı: admin / admin123');
 }
 
 module.exports = { db, initialize };
