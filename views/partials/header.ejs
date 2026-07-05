@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>İTKAN - <%= typeof title !== 'undefined' ? title : 'Sınıf Yönetimi' %></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% if (typeof currentUser !== 'undefined' && currentUser) { %>
+<% if (typeof currentPage === 'undefined') currentPage = ''; %>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">İTKAN <span class="tag">DOCK</span></div>
+  <nav class="sidebar-nav">
+    <% (locals.navItems || []).forEach(function(item) { %>
+    <a href="<%= item.href %>" class="<%= currentPage === item.href.split('/')[1] ? 'active' : '' %>">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%= item.icon %>"/></svg>
+      <%= item.label %>
+    </a>
+    <% }); %>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="profile-container">
+      <button class="profile-btn" onclick="toggleProfileDropdown(event, 'sidebarDropdown')">
+        <div class="profile-avatar"><%= currentUser.display_name.charAt(0).toUpperCase() %></div>
+        <div class="profile-info">
+          <span class="profile-name"><%= currentUser.display_name %></span>
+          <span class="profile-role"><%= currentUser.role === 'super_admin' ? 'Yönetici' : 'Öğretmen' %></span>
+        </div>
+        <svg class="profile-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div class="profile-dropdown" id="sidebarDropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-avatar"><%= currentUser.display_name.charAt(0).toUpperCase() %></div>
+          <div>
+            <div class="dropdown-name"><%= currentUser.display_name %></div>
+            <div class="dropdown-username">@<%= currentUser.username %></div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a href="/sifre-degistir" class="dropdown-item" style="color: rgba(255, 255, 255, 0.7); margin-bottom: 4px;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          Şifre Değiştir
+        </a>
+        <a href="/cikis" class="dropdown-item logout-link">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Çıkış Yap
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<header class="topbar">
+  <div class="topbar-l">
+    <button class="mbtn" onclick="toggleSidebar()" aria-label="Menü">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <a href="/dashboard" class="topbar-brand">İTKAN</a>
+  </div>
+  <div class="profile-container" style="width: auto;">
+    <button class="profile-btn-mobile" onclick="toggleProfileDropdown(event, 'mobileDropdown')">
+      <%= currentUser.display_name.charAt(0).toUpperCase() %>
+    </button>
+    <div class="profile-dropdown mobile-dropdown-pos" id="mobileDropdown">
+      <div class="dropdown-header">
+        <div class="dropdown-avatar"><%= currentUser.display_name.charAt(0).toUpperCase() %></div>
+        <div>
+          <div class="dropdown-name"><%= currentUser.display_name %></div>
+          <div class="dropdown-username">@<%= currentUser.username %></div>
+        </div>
+      </div>
+      <div class="dropdown-divider"></div>
+      <a href="/sifre-degistir" class="dropdown-item" style="color: var(--text2); margin-bottom: 4px;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        Şifre Değiştir
+      </a>
+      <a href="/cikis" class="dropdown-item logout-link">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Çıkış Yap
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+function toggleProfileDropdown(event, id) {
+  event.stopPropagation();
+  var dropdown = document.getElementById(id);
+  var isOpen = dropdown.classList.contains('show');
+  
+  // Close all other profile dropdowns first
+  document.querySelectorAll('.profile-dropdown').forEach(function(el) {
+    el.classList.remove('show');
+  });
+  
+  if (!isOpen) {
+    dropdown.classList.add('show');
+  }
+}
+
+// Close dropdowns when clicking anywhere outside
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.profile-container')) {
+    document.querySelectorAll('.profile-dropdown').forEach(function(el) {
+      el.classList.remove('show');
+    });
+  }
+});
+</script>
+
+<div class="main"><div class="wrap">
+<% } %>

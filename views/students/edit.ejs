@@ -1,0 +1,47 @@
+<%- include('../partials/header', { title: 'Öğrenci Düzenle' }) %>
+<% currentPage = 'siniflar'; %>
+
+<div class="back" style="margin-bottom:20px">
+  <a href="/ogrenci/<%= student.id %>" class="btn btn-s btn-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>
+  <h1 style="font-size:20px;font-weight:700">Öğrenci Düzenle</h1>
+</div>
+
+<div class="card">
+  <form method="POST" action="/ogrenci/<%= student.id %>/duzenle">
+    <div class="flex-2">
+      <div class="fg"><label class="fl">Ad *</label><input type="text" name="name" class="fi" value="<%= student.name %>" required></div>
+      <div class="fg"><label class="fl">Soyad</label><input type="text" name="surname" class="fi" value="<%= student.surname %>"></div>
+    </div>
+    <div class="flex-2">
+      <div class="fg"><label class="fl">TC Kimlik</label><input type="text" name="tc_kimlik" class="fi" value="<%= student.tc_kimlik %>"></div>
+      <div class="fg"><label class="fl">Sınıf</label>
+        <select name="class_id" class="fs">
+          <% classes.forEach(function(c) { %>
+          <option value="<%= c.id %>" <%= c.id === student.class_id ? 'selected' : '' %>><%= c.name %></option>
+          <% }); %>
+        </select>
+      </div>
+    </div>
+    <div class="flex-2">
+      <div class="fg"><label class="fl">Yaş</label><input type="number" name="age" class="fi" value="<%= student.age %>" min="1" max="99"></div>
+      <div class="fg">
+        <label class="fl">Okul Sınıfı</label>
+        <select name="school_grade" class="fs">
+          <option value="">Seçiniz...</option>
+          <% for(var i=1; i<=12; i++) { %>
+          <option value="<%= i %>. Sınıf" <%= student.school_grade === (i + '. Sınıf') ? 'selected' : '' %>><%= i %>. Sınıf</option>
+          <% } %>
+          <option value="Yok / Mezun" <%= student.school_grade === 'Yok / Mezun' ? 'selected' : '' %>>Yok / Mezun</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Veli Adı Soyadı</label><input type="text" name="parent_name" class="fi" value="<%= student.parent_name %>"></div>
+    <div class="flex-2">
+      <div class="fg"><label class="fl">Telefon</label><input type="tel" name="phone" class="fi" value="<%= student.phone %>" placeholder="05XX XXX XX XX"></div>
+      <div class="fg"><label class="fl">Ev Adresi</label><input type="text" name="address" class="fi" value="<%= student.address %>" placeholder="İl/İlçe/Mahalle"></div>
+    </div>
+    <button type="submit" class="btn btn-p btn-blk">Kaydet</button>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>

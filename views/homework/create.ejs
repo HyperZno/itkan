@@ -1,0 +1,126 @@
+<%- include('../partials/header', { title: 'Ödev Ver' }) %>
+<% currentPage = 'siniflar'; %>
+
+<div class="back" style="margin-bottom:20px">
+  <a href="/ogrenci/<%= student.id %>" class="btn btn-s btn-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>
+  <div><h1 style="font-size:20px;font-weight:700;line-height:1.2">Ödev Ver</h1><span style="font-size:12px;color:var(--text2)"><%= student.name %> <%= student.surname %> • <%= student.class_name %></span></div>
+</div>
+
+<div class="card">
+  <div style="display:flex;gap:8px;margin-bottom:20px">
+    <button type="button" class="btn btn-p btn-sm" id="tabSurah" onclick="switchTab('surah')" style="flex:1">Sure</button>
+    <button type="button" class="btn btn-s btn-sm" id="tabElifba" onclick="switchTab('elifba')" style="flex:1">Elifba</button>
+  </div>
+
+  <form method="POST" action="/odev/ogrenci/<%= student.id %>/ekle" id="homeworkForm">
+    <input type="hidden" name="type" id="hwType" value="surah">
+
+    <div id="surahSection">
+      <div class="fg"><label class="fl">Sure Seç</label>
+        <select name="surah_id" class="fs" id="surahSelect" onchange="updateAyat()">
+          <option value="">Sure seçin...</option>
+          <% surahs.forEach(function(s) { %>
+          <option value="<%= s.id %>" data-ayahs="<%= s.ayah_count %>"><%= s.order_index %>. <%= s.name %> (<%= s.ayah_count %> ayet)</option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="flex-2">
+        <div class="fg"><label class="fl">Başlangıç Ayeti</label><input type="number" name="start_ayah" class="fi" id="startAyah" value="1" min="1"></div>
+        <div class="fg"><label class="fl">Bitiş Ayeti</label><input type="number" name="end_ayah" class="fi" id="endAyah" min="1"></div>
+      </div>
+    </div>
+
+    <div id="elifbaSection" style="display:none">
+      <div class="fg"><label class="fl">Elifba Konusu</label>
+        <select name="elifba_topic_id" class="fs" id="elifbaTopicSelect" onchange="updateElifbaNotes()">
+          <option value="">Konu seçin...</option>
+          <% elifbaTopics.forEach(function(t) { %>
+          <option value="<%= t.id %>"><%= t.lesson_number %>. <%= t.name %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Ders Aralığı / Detay</label>
+        <select id="elifbaRangeSelect" class="fs" onchange="updateElifbaNotes()">
+          <option value="">Seçiniz...</option>
+          <option value="Tamamı">Sayfanın Tamamı</option>
+          <option value="Yarısı">Sayfanın Yarısı</option>
+          <option value="1. Satır">1. Satır</option>
+          <option value="2. Satır">2. Satır</option>
+          <option value="3. Satır">3. Satır</option>
+          <option value="4. Satır">4. Satır</option>
+          <option value="5. Satır">5. Satır</option>
+          <option value="6. Satır">6. Satır</option>
+          <option value="7. Satır">7. Satır</option>
+          <option value="8. Satır">8. Satır</option>
+          <option value="özel">Özel Aralık...</option>
+        </select>
+        <input type="text" id="elifbaCustomRange" class="fi" placeholder="Örn: 1. ve 2. Satırlar" style="margin-top: 8px; display: none;" oninput="updateElifbaNotes()">
+      </div>
+    </div>
+
+    <div class="fg"><label class="fl">Teslim Tarihi <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><input type="date" name="due_date" class="fi"></div>
+    <div class="fg"><label class="fl">Not <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><textarea name="notes" id="hwNotes" class="fta" rows="2" placeholder="Ödevle ilgili not..."></textarea></div>
+    <button type="submit" class="btn btn-ok btn-blk">Ödevi Ver</button>
+  </form>
+</div>
+
+<script>
+function switchTab(type) {
+  document.getElementById('hwType').value = type;
+  document.getElementById('tabSurah').className = type === 'surah' ? 'btn btn-p btn-sm' : 'btn btn-s btn-sm';
+  document.getElementById('tabElifba').className = type === 'elifba' ? 'btn btn-p btn-sm' : 'btn btn-s btn-sm';
+  document.getElementById('surahSection').style.display = type === 'surah' ? 'block' : 'none';
+  document.getElementById('elifbaSection').style.display = type === 'elifba' ? 'block' : 'none';
+  if (type === 'surah') {
+    document.querySelector('[name="surah_id"]').required = true;
+    document.querySelector('[name="elifba_topic_id"]').required = false;
+    document.getElementById('hwNotes').value = "";
+  } else {
+    document.querySelector('[name="surah_id"]').required = false;
+    document.querySelector('[name="elifba_topic_id"]').required = true;
+    updateElifbaNotes();
+  }
+}
+
+function updateElifbaNotes() {
+  var topicSelect = document.getElementById('elifbaTopicSelect');
+  var rangeSelect = document.getElementById('elifbaRangeSelect');
+  var customInput = document.getElementById('elifbaCustomRange');
+  var notesArea = document.getElementById('hwNotes');
+  
+  if (topicSelect.value === '') {
+    notesArea.value = '';
+    return;
+  }
+  
+  var topicText = topicSelect.options[topicSelect.selectedIndex].text;
+  var rangeVal = rangeSelect.value;
+  var rangeText = '';
+  
+  if (rangeVal === 'özel') {
+    customInput.style.display = 'block';
+    rangeText = customInput.value;
+  } else {
+    customInput.style.display = 'none';
+    rangeText = rangeVal ? rangeSelect.options[rangeSelect.selectedIndex].text : '';
+  }
+  
+  var noteVal = topicText;
+  if (rangeText) {
+    noteVal += ' - ' + rangeText;
+  }
+  notesArea.value = noteVal;
+}
+
+function updateAyat() {
+  var sel = document.getElementById('surahSelect');
+  var opt = sel.options[sel.selectedIndex];
+  if (opt.dataset.ayahs) {
+    document.getElementById('endAyah').value = opt.dataset.ayahs;
+    document.getElementById('endAyah').max = opt.dataset.ayahs;
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

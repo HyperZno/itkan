@@ -1,0 +1,46 @@
+<%- include('partials/header', { title: 'Ana Sayfa' }) %>
+<% currentPage = 'dashboard'; %>
+
+<div class="hdr"><h1>Ana Sayfa</h1><span class="hdr-sub"><%= new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span></div>
+
+<div class="stats">
+  <a href="/siniflar" class="stat">
+    <div class="stat-ico" style="background:#ccfbf1"><svg fill="none" stroke="#0a6e6a" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
+    <div class="stat-lb">Sınıflar</div>
+    <div class="stat-val"><%= classes.length %></div>
+  </a>
+  <a href="/sureler" class="stat">
+    <div class="stat-ico" style="background:#d1fae5"><svg fill="none" stroke="#059669" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
+    <div class="stat-lb">Sureler</div>
+    <div class="stat-val">114</div>
+  </a>
+</div>
+
+<% if (classes.length > 0) { %>
+<div class="sec">
+  <div class="sec-hdr"><h2 class="sec-t">Sınıfların</h2><a href="/siniflar" class="sec-lk">Tümünü Gör</a></div>
+  <div class="card" style="padding:4px 16px">
+    <% classes.slice(0, 5).forEach(function(c, i) { %>
+    <a href="/sinif/<%= c.id %>" class="lst-it" style="padding:12px 0">
+      <div class="lst-av" style="background:#ccfbf1;color:#0a6e6a;width:38px;height:38px;font-size:14px"><%= c.name.charAt(0) %></div>
+      <div class="lst-c"><div class="lst-t"><%= c.name %></div><div class="lst-s"><%= c.student_count || 0 %> öğrenci</div></div>
+      <svg class="lst-ch" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </a>
+    <% if (i < classes.slice(0, 5).length - 1) { %><div style="border-bottom:1px solid #f3f4f6"></div><% } %>
+    <% }); %>
+  </div>
+</div>
+<% } %>
+
+<% if (classes.length === 0) { %>
+<div class="card">
+  <div class="empty">
+    <div class="empty-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></div>
+    <div class="empty-t">Henüz Sınıf Yok</div>
+    <div class="empty-d">İlk sınıfını oluşturarak başla</div>
+    <a href="/sinif-ekle" class="btn btn-p">Sınıf Oluştur</a>
+  </div>
+</div>
+<% } %>
+
+<%- include('partials/footer') %>

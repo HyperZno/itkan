@@ -1,0 +1,84 @@
+<%- include('../partials/header', { title: student.name + ' ' + student.surname }) %>
+<% currentPage = 'siniflar'; %>
+
+<div class="back" style="margin-bottom:16px">
+  <a href="/sinif/<%= student.class_id %>" class="btn btn-s btn-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>
+  <div><h1 style="font-size:20px;font-weight:700;line-height:1.2"><%= student.name %> <%= student.surname %></h1><span style="font-size:12px;color:var(--text2)"><%= student.class_name %></span></div>
+</div>
+
+<div class="card sec">
+  <div class="card-hdr"><h2 class="card-title" style="margin:0">Öğrenci Bilgileri</h2><a href="/ogrenci/<%= student.id %>/duzenle" class="btn btn-s btn-sm">Düzenle</a></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+    <div><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">Ad Soyad</strong><span><%= student.name %> <%= student.surname %></span></div>
+    <div><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">TC Kimlik</strong><span><%= student.tc_kimlik || '-' %></span></div>
+    <div><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">Yaş</strong><span><%= student.age || '-' %></span></div>
+    <div><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">Okul Sınıfı</strong><span><%= student.school_grade || '-' %></span></div>
+    <div><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">Sınıf</strong><span><%= student.class_name %></span></div>
+    <div><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">Veli</strong><span><%= student.parent_name || '-' %></span></div>
+    <div><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">Telefon</strong><span><%= student.phone || '-' %></span></div>
+    <div style="grid-column:1/-1"><strong style="color:var(--text2);display:block;font-size:11px;font-weight:600">Adres</strong><span><%= student.address || '-' %></span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-hdr"><h2 class="sec-t">Ödevler</h2><a href="/odev/ogrenci/<%= student.id %>/ekle" class="btn btn-p btn-sm" style="gap:6px">
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Ödev Ver
+  </a></div>
+
+  <% if (homework.length === 0) { %>
+  <div class="card"><div class="empty" style="padding:20px">
+    <div class="empty-t" style="font-size:14px">Henüz ödev verilmemiş</div>
+    <div class="empty-d">Bu öğrenciye ödev vermek için "Ödev Ver" butonuna tıkla</div>
+  </div></div>
+  <% } else { %>
+  <% homework.forEach(function(h) { %>
+  <div class="hwc">
+    <div class="hwc-t">
+      <div>
+        <div class="hwc-s">
+          <% if (h.type === 'elifba') { %>
+            📖 Elifba - <%= h.lesson_number || '' %>. Konu
+          <% } else { %>
+            📖 <%= h.surah_name %> Süresi
+          <% } %>
+        </div>
+        <div class="hwc-a">
+          <% if (h.type === 'elifba') { %>
+            <%= h.elifba_topic_name || '' %>
+            <% if (h.elifba_url) { %>
+              <div style="margin-top: 6px;">
+                <a href="<%= h.elifba_url %>" target="_blank" class="sec-lk" style="font-size: 11px; font-weight: 700; text-decoration: underline;">Diyanet'te Çalış ➔</a>
+              </div>
+            <% } %>
+          <% } else { %>
+            <%= h.start_ayah %>-<%= h.end_ayah %>. ayetler
+          <% } %>
+        </div>
+      </div>
+      <span class="bdg <%= h.status === 'completed' ? 'bdg-ok' : (h.status === 'in_progress' ? 'bdg-warn' : 'bdg-err') %>">
+        <%= h.status === 'completed' ? 'Ezberledi' : (h.status === 'in_progress' ? 'Çalışıyor' : 'Başlamadı') %>
+      </span>
+    </div>
+    <div class="hwc-m">
+      <span><%= h.teacher_name %> verdi</span>
+      <span><%= new Date(h.assigned_date).toLocaleDateString('tr-TR') %></span>
+      <% if (h.due_date) { %><span>Teslim: <%= new Date(h.due_date).toLocaleDateString('tr-TR') %></span><% } %>
+      <% if (h.checker_name) { %><span>Kontrol: <%= h.checker_name %></span><% } %>
+    </div>
+    <% if (h.notes) { %><div class="hwc-n"><%= h.notes %></div><% } %>
+    <div class="hwc-b">
+      <form method="POST" action="/odev/<%= h.id %>/guncelle" style="display:flex;gap:4px;flex-wrap:wrap">
+        <button type="submit" name="status" value="not_started" class="st-btn <%= h.status === 'not_started' ? 's1' : '' %>">Başlamadı</button>
+        <button type="submit" name="status" value="in_progress" class="st-btn <%= h.status === 'in_progress' ? 's2' : '' %>">Çalışıyor</button>
+        <button type="submit" name="status" value="completed" class="st-btn <%= h.status === 'completed' ? 's3' : '' %>">Ezberledi</button>
+      </form>
+      <form method="POST" action="/odev/<%= h.id %>/sil" onsubmit="return confirm('Ödev silinsin mi?')" style="margin-left:auto">
+        <button type="submit" class="btn btn-err btn-xs">Sil</button>
+      </form>
+    </div>
+  </div>
+  <% }); %>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

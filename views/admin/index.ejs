@@ -1,0 +1,36 @@
+<%- include('../partials/header', { title: 'Admin Paneli' }) %>
+<% currentPage = 'admin'; %>
+
+<div class="hdr">
+  <h1>Admin Paneli</h1>
+  <a href="/admin/olustur" class="btn btn-p btn-sm" style="gap:6px">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Yeni
+  </a>
+</div>
+
+<div class="card">
+  <h2 class="card-title">Öğretmenler</h2>
+  <% admins.forEach(function(u, i) { %>
+  <div>
+    <div class="lst-it" style="cursor:default;padding:12px 0">
+      <div class="lst-av" style="background:<%= u.role === 'super_admin' ? '#fef3c7' : '#ccfbf1' %>;color:<%= u.role === 'super_admin' ? '#d97706' : '#0a6e6a' %>"><%= u.display_name.charAt(0) %></div>
+      <div class="lst-c"><div class="lst-t"><%= u.display_name %></div><div class="lst-s">@<%= u.username %></div></div>
+      <span class="bdg <%= u.role === 'super_admin' ? 'bdg-warn' : 'bdg-info' %>"><%= u.role === 'super_admin' ? 'Süper Admin' : 'Admin' %></span>
+    </div>
+    <% if (u.role !== 'super_admin') { %>
+    <div style="display:flex;gap:6px;padding:0 0 12px 0;flex-wrap:wrap">
+      <form method="POST" action="/admin/sifre-sifirla/<%= u.id %>" style="display:flex;gap:4px;flex:1;min-width:180px">
+        <input type="password" name="new_password" class="fi fi-sm" style="flex:1" placeholder="Yeni şifre" required>
+        <button type="submit" class="btn btn-s btn-xs" style="background:#f59e0b;color:#fff">Sıfırla</button>
+      </form>
+      <form method="POST" action="/admin/sil/<%= u.id %>" onsubmit="return confirm('<%= u.display_name %> silinsin mi?')">
+        <button type="submit" class="btn btn-err btn-xs">Sil</button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+  <% if (i < admins.length - 1) { %><div style="border-bottom:1px solid #f3f4f6;margin-bottom:4px"></div><% } %>
+  <% }); %>
+</div>
+
+<%- include('../partials/footer') %>

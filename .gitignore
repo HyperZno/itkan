@@ -1,0 +1,15 @@
+node_modules/
+itkan.db
+itkan.db-wal
+itkan.db-shm
+.DS_Store
+.gemini/
+.env
+.idea/
+.vscode/
+*.log
+android/app/build/
+android/.gradle/
+android/local.properties
+.gradle/
+build/

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>İTKAN - Giriş</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0b3b3a,#0a6e6a,#0d9488);padding:20px;position:relative;overflow:hidden}
+.login::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(255,255,255,.06),transparent 70%);top:-200px;right:-200px;border-radius:50%}
+.login-card{background:#fff;border-radius:20px;box-shadow:0 25px 50px rgba(0,0,0,.25);padding:36px 28px;width:100%;max-width:380px;position:relative}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo h1{font-size:38px;font-weight:800;background:linear-gradient(135deg,#0b3b3a,#0d9488);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.login-logo p{font-size:13px;color:#6b7280;margin-top:4px;font-weight:500}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:13px;font-weight:600;color:#111827;margin-bottom:6px}
+.fg input{width:100%;padding:11px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:inherit;transition:all .15s;background:#f9fafb}
+.fg input:focus{outline:none;border-color:#0a6e6a;box-shadow:0 0 0 3px rgba(10,110,106,.1);background:#fff}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;background:linear-gradient(135deg,#0a6e6a,#0d9488);color:#fff;transition:all .15s;box-shadow:0 4px 12px rgba(10,110,106,.3)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,110,106,.4)}
+.btn:active{transform:scale(.97)}
+.alert{padding:12px 14px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:16px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.login-ft{text-align:center;margin-top:20px;font-size:12px;color:#9ca3af}
+</style>
+</head>
+<body>
+<div class="login">
+<div class="login-card">
+<div class="login-logo"><h1>İTKAN</h1><p>Sınıf Yönetim Sistemi</p></div>
+<% if (typeof error !== 'undefined' && error) { %><div class="alert"><%= error %></div><% } %>
+<form method="POST" action="/giris">
+<div class="fg"><label>Kullanıcı Adı</label><input type="text" name="username" placeholder="Kullanıcı adınız" required autocomplete="username" autofocus></div>
+<div class="fg"><label>Şifre</label><input type="password" name="password" placeholder="Şifreniz" required autocomplete="current-password"></div>
+<button type="submit" class="btn">Giriş Yap</button>
+</form>
+<div class="login-ft">v1.0 — İTKAN</div>
+</div>
+</div>
+</body>
+</html>

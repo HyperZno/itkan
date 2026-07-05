@@ -1,0 +1,174 @@
+<%- include('../partials/header', { title: 'Öğrenciler' }) %>
+<% currentPage = 'ogrenci-ekle'; %>
+
+<div class="back" style="margin-bottom:24px">
+  <a href="/dashboard" class="btn btn-s btn-ico" aria-label="Geri">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </a>
+  <div style="flex:1">
+    <h1 style="font-size:22px;font-weight:800;line-height:1.2">Öğrenciler</h1>
+    <span style="font-size:12px;color:var(--text2);font-weight:600">Kayıtlı tüm öğrencileri görüntüleyin ve yönetin</span>
+  </div>
+  <div>
+    <button onclick="toggleAddStudentForm()" class="btn btn-p btn-sm" style="gap:6px">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+      Öğrenci Ekle
+    </button>
+  </div>
+</div>
+
+<!-- Collapsible Student Form -->
+<div class="card" id="addStudentCollapse" style="display: none; animation: slideUp 0.2s ease;">
+  <div class="card-hdr" style="margin-bottom: 20px;">
+    <h2 class="card-title" style="margin: 0; font-size: 16px; color: var(--primary);">Yeni Öğrenci Ekle</h2>
+  </div>
+  <form method="POST" action="/ogrenci-ekle">
+    <div class="flex-2">
+      <div class="fg">
+        <label class="fl">Ad *</label>
+        <input type="text" name="name" class="fi" placeholder="Öğrencinin adı" required autocomplete="off">
+      </div>
+      <div class="fg">
+        <label class="fl">Soyad</label>
+        <input type="text" name="surname" class="fi" placeholder="Öğrencinin soyadı" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="flex-2">
+      <div class="fg">
+        <label class="fl">TC Kimlik Numarası</label>
+        <input type="text" name="tc_kimlik" class="fi" placeholder="11 haneli TC no" maxlength="11" autocomplete="off">
+      </div>
+      <div class="fg">
+        <label class="fl">Kurs Sınıfı *</label>
+        <select name="class_id" class="fs" required>
+          <option value="">Sınıf seçin...</option>
+          <% classes.forEach(function(c) { %>
+            <option value="<%= c.id %>" <%= (selectedClassId && selectedClassId == c.id) ? 'selected' : '' %>><%= c.name %></option>
+          <% }); %>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex-2">
+      <div class="fg">
+        <label class="fl">Yaş</label>
+        <input type="number" name="age" class="fi" placeholder="Örn: 12" min="1" max="99">
+      </div>
+      <div class="fg">
+        <label class="fl">Okul Sınıfı</label>
+        <select name="school_grade" class="fs">
+          <option value="">Seçiniz...</option>
+          <% for(var i=1; i<=12; i++) { %>
+          <option value="<%= i %>. Sınıf"><%= i %>. Sınıf</option>
+          <% } %>
+          <option value="Yok / Mezun">Yok / Mezun</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Veli Adı Soyadı</label>
+      <input type="text" name="parent_name" class="fi" placeholder="Veli ad soyad" autocomplete="off">
+    </div>
+
+    <div class="flex-2">
+      <div class="fg">
+        <label class="fl">Telefon Numarası</label>
+        <input type="tel" name="phone" class="fi" placeholder="05XX XXX XX XX" autocomplete="off">
+      </div>
+      <div class="fg">
+        <label class="fl">Ev Adresi</label>
+        <input type="text" name="address" class="fi" placeholder="İl, ilçe, mahalle, cadde..." autocomplete="off">
+      </div>
+    </div>
+
+    <div class="flex-gap" style="justify-content: flex-end; margin-top: 8px;">
+      <button type="button" class="btn btn-s" onclick="toggleAddStudentForm()">Vazgeç</button>
+      <button type="submit" class="btn btn-ok">Kayıt Ekle</button>
+    </div>
+  </form>
+</div>
+
+<!-- Search Bar -->
+<div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
+  <div class="fg" style="margin: 0;">
+    <input type="text" id="allStudentSearchInput" class="fi" placeholder="Öğrenci adı, sınıfı, veli veya TC kimlik no yazarak ara..." oninput="filterAllStudents()">
+  </div>
+</div>
+
+<!-- Registered Students list -->
+<div class="card">
+  <div class="card-hdr" style="margin-bottom: 16px;">
+    <h2 class="card-title" style="margin: 0; font-size: 15px;">Kayıtlı Öğrenciler (<%= students.length %>)</h2>
+  </div>
+
+  <% if (students.length === 0) { %>
+  <div class="empty">
+    <div class="empty-ico">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+    </div>
+    <div class="empty-t">Öğrenci Bulunmuyor</div>
+    <div class="empty-d">Henüz sisteme kayıtlı bir öğrenci yok. "Öğrenci Ekle" butonuna tıklayarak ilk öğrencinizi kaydedebilirsiniz.</div>
+  </div>
+  <% } else { %>
+  <div style="margin: 0 -16px;" id="allStudentsContainer">
+    <% students.forEach(function(s, i) { %>
+    <div class="lst-it all-student-item" data-search="<%= s.name.toLowerCase() %> <%= s.surname.toLowerCase() %> <%= s.class_name.toLowerCase() %> <%= s.parent_name ? s.parent_name.toLowerCase() : '' %> <%= s.phone || '' %> <%= s.tc_kimlik || '' %>" style="padding: 16px; cursor: default; border-bottom: 1px solid rgba(226, 232, 240, 0.5)">
+      <div class="lst-av" style="width:40px; height:40px; font-size:14px;"><%= s.name.charAt(0).toUpperCase() %></div>
+      <div class="lst-c">
+        <div class="lst-t"><%= s.name %> <%= s.surname %></div>
+        <div class="lst-s" style="margin-top: 4px;">
+          <span class="bdg bdg-info" style="padding: 2px 8px; font-size: 10px; margin-right: 6px;"><%= s.class_name %></span>
+          <% if (s.school_grade) { %>
+          <span class="bdg bdg-gray" style="padding: 2px 8px; font-size: 10px; margin-right: 6px;">Okul: <%= s.school_grade %></span>
+          <% } %>
+          <% if (s.age) { %>
+          <span class="bdg bdg-gray" style="padding: 2px 8px; font-size: 10px;"><%= s.age %> yaş</span>
+          <% } %>
+        </div>
+        <div class="lst-s" style="margin-top: 6px; font-size: 11px;">
+          <%= s.parent_name ? 'Veli: ' + s.parent_name : '' %>
+          <%= s.phone ? ' • Tel: ' + s.phone : '' %>
+          <%= s.tc_kimlik ? ' • TC: ' + s.tc_kimlik : '' %>
+        </div>
+      </div>
+      <div class="lst-r">
+        <a href="/ogrenci/<%= s.id %>" class="btn btn-xs btn-s">Ödevler</a>
+        <a href="/ogrenci/<%= s.id %>/duzenle" class="btn btn-xs btn-s">Düzenle</a>
+        <form method="POST" action="/ogrenci/<%= s.id %>/sil" onsubmit="return confirm('Öğrenci silinsin mi?')" style="margin: 0;">
+          <button type="submit" class="btn btn-xs btn-err">Sil</button>
+        </form>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+  <% } %>
+</div>
+
+<script>
+function toggleAddStudentForm() {
+  var formDiv = document.getElementById('addStudentCollapse');
+  if (formDiv.style.display === 'none') {
+    formDiv.style.display = 'block';
+    formDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    formDiv.style.display = 'none';
+  }
+}
+
+function filterAllStudents() {
+  var input = document.getElementById('allStudentSearchInput').value.toLowerCase().trim();
+  var items = document.querySelectorAll('.all-student-item');
+  items.forEach(function(item) {
+    var searchData = item.dataset.search;
+    if (searchData.indexOf(input) > -1) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

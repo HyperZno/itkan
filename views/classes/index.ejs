@@ -1,0 +1,31 @@
+<%- include('../partials/header', { title: 'Sınıflar' }) %>
+<% currentPage = 'siniflar'; %>
+
+<div class="hdr">
+  <h1>Sınıflar</h1>
+  <a href="/sinif-ekle" class="btn btn-p btn-sm" style="gap:6px">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+    Yeni
+  </a>
+</div>
+
+<% if (classes.length === 0) { %>
+<div class="card"><div class="empty">
+  <div class="empty-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
+  <div class="empty-t">Henüz Sınıf Yok</div>
+  <div class="empty-d">Yeni bir sınıf oluşturmak için yukarıdaki butona tıkla</div>
+</div></div>
+<% } else { %>
+<div class="card" style="padding:4px 16px">
+  <% classes.forEach(function(c, i) { %>
+  <a href="/sinif/<%= c.id %>" class="lst-it">
+    <div class="lst-av" style="background:#ccfbf1;color:#0a6e6a"><%= c.name.charAt(0) %></div>
+    <div class="lst-c"><div class="lst-t"><%= c.name %></div><div class="lst-s"><%= c.student_count || 0 %> öğrenci • <%= c.session_count || 0 %> yoklama</div></div>
+    <svg class="lst-ch" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+  </a>
+  <% if (i < classes.length - 1) { %><div style="border-bottom:1px solid #f3f4f6"></div><% } %>
+  <% }); %>
+</div>
+<% } %>
+
+<%- include('../partials/footer') %>

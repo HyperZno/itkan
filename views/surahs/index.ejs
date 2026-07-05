@@ -1,0 +1,23 @@
+<%- include('../partials/header', { title: 'Sureler' }) %>
+<% currentPage = 'sureler'; %>
+
+<div class="hdr"><h1>Sureler</h1><span class="bdg bdg-info">114 sure</span></div>
+
+<div class="fg"><input type="text" id="searchInput" class="fi" placeholder="Sure ara..." onkeyup="filterSurahs()"></div>
+
+<div class="card" style="padding:4px 16px">
+<% surahs.forEach(function(s, i) { %>
+<div class="surah-item lst-it" data-name="<%= s.name.toLowerCase() %>" data-index="<%= s.order_index %>" style="padding:11px 0;cursor:default">
+  <div class="lst-av" style="width:30px;height:30px;font-size:11px;background:#f3f4f6;color:var(--text2)"><%= s.order_index %></div>
+  <div class="lst-c"><div class="lst-t" style="font-size:13px"><%= s.name %></div><div class="lst-s"><%= s.ayah_count %> ayet</div></div>
+  <span style="font-size:11px;color:var(--text3)"><%= s.ayah_count %></span>
+</div>
+<% if (i < surahs.length - 1) { %><div style="border-bottom:1px solid #f3f4f6"></div><% } %>
+<% }); %>
+</div>
+
+<script>
+function filterSurahs(){var v=document.getElementById('searchInput').value.toLowerCase();document.querySelectorAll('.surah-item').forEach(function(e){var n=e.dataset.name,i=e.dataset.index;e.style.display=n.includes(v)||i.includes(v)?'flex':'none'})}
+</script>
+
+<%- include('../partials/footer') %>

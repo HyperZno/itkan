@@ -1,0 +1,42 @@
+<%- include('../partials/header', { title: 'Admin Oluştur' }) %>
+<% currentPage = 'admin'; %>
+
+<div class="back" style="margin-bottom:24px">
+  <a href="/admin" class="btn btn-s btn-ico" aria-label="Geri">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </a>
+  <div>
+    <h1 style="font-size:22px;font-weight:800;line-height:1.2">Admin Oluştur</h1>
+    <span style="font-size:12px;color:var(--text2);font-weight:600">Sistem için yeni bir yetkili veya öğretmen hesabı tanımlayın</span>
+  </div>
+</div>
+
+<div class="card">
+  <% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-err"><%= error %></div>
+  <% } %>
+  <form method="POST" action="/admin/olustur">
+    <div class="fg">
+      <label class="fl">Kullanıcı Adı</label>
+      <input type="text" name="username" class="fi" placeholder="Kullanıcı adı" required autocomplete="off">
+    </div>
+    <div class="fg">
+      <label class="fl">Ad Soyad</label>
+      <input type="text" name="display_name" class="fi" placeholder="Ad Soyad" required autocomplete="off">
+    </div>
+    <div class="fg">
+      <label class="fl">Şifre</label>
+      <input type="password" name="password" class="fi" placeholder="Şifre" required autocomplete="off">
+    </div>
+    <div class="fg">
+      <label class="fl">Yetki</label>
+      <select name="role" class="fs">
+        <option value="admin">Admin (Öğretmen)</option>
+        <option value="super_admin">Süper Admin</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-p btn-blk">Admin Oluştur</button>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>

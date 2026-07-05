@@ -1,0 +1,186 @@
+<%- include('../partials/header', { title: 'Yoklama Girişi' }) %>
+<% currentPage = 'siniflar'; %>
+
+<% 
+  var dateParts = date.split('-');
+  var displayDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+%>
+
+<div class="back" style="margin-bottom:24px">
+  <a href="/yoklama/sinif/<%= classData.id %>" class="btn btn-s btn-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>
+  <div>
+    <h1 style="font-size:20px;font-weight:800;line-height:1.2">Yoklama Girişi</h1>
+    <span style="font-size:12px;color:var(--text2);font-weight:500"><%= classData.name %> • <%= displayDate %></span>
+  </div>
+</div>
+
+<!-- Absentees (Gelmeyenler) WhatsApp Section -->
+<% if (existingSession) { %>
+  <% 
+    var absentees = [];
+    students.forEach(function(s) {
+      var record = records.find(function(r) { return r.student_id === s.id; });
+      if (record && record.status === 'absent') {
+        absentees.push(s);
+      }
+    });
+  %>
+  
+  <% if (absentees.length > 0) { %>
+  <div class="card" style="border-left: 5px solid var(--warn); padding: 20px 24px; margin-bottom: 20px;">
+    <div class="card-hdr" style="margin-bottom: 12px;">
+      <h2 class="card-title" style="margin: 0; font-size: 15px; color: var(--warn-text);">Gelmeyen Öğrenciler (<%= absentees.length %>)</h2>
+    </div>
+    <div class="lst">
+      <% absentees.forEach(function(s) { %>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border);">
+        <div style="min-width: 0; flex: 1; padding-right: 12px;">
+          <div style="font-size: 13px; font-weight: 700; color: var(--text);"><%= s.name %> <%= s.surname %></div>
+          <div style="font-size: 11px; color: var(--text2); margin-top: 2px;">
+            Veli: <%= s.parent_name || 'Belirtilmedi' %> • Tel: <%= s.phone || 'Belirtilmedi' %>
+          </div>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <% if (s.phone && s.phone !== '5555555555') { %>
+          <button onclick="sendWhatsAppNotification('<%= s.name %> <%= s.surname %>', '<%= s.parent_name || 'Veli' %>', '<%= s.phone %>', '<%= classData.name %>', '<%= displayDate %>')" 
+                  class="btn btn-ok btn-xs" style="gap: 6px; background: #25D366; border-color: #25D366; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2); color: #ffffff;">
+            <svg style="width: 14px; height: 14px;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.197 1.451 4.975 1.452 5.534 0 10.038-4.502 10.04-10.04.002-2.684-1.04-5.204-2.936-7.104C16.83 1.56 14.316.516 11.64.516 6.104.516 1.6 5.017 1.597 10.556c-.001 1.868.5 3.698 1.453 5.3l-.956 3.49 3.554-.932zM18.25 15.3c-.34-.17-2.02-1-2.333-1.113-.314-.115-.544-.17-.773.17-.23.34-.888 1.113-1.088 1.3-.2.23-.4.26-.74.09-.34-.17-1.434-.528-2.73-1.685-1.01-.9-1.692-2.015-1.89-2.355-.2-.34-.02-.524.15-.694.155-.153.34-.4.51-.6.17-.2.23-.34.34-.567.113-.23.057-.426-.028-.6-.086-.17-.773-1.86-1.06-2.553-.28-.675-.56-.583-.772-.594-.2-.012-.428-.012-.656-.012-.23 0-.6.086-.914.426-.314.34-1.2 1.174-1.2 2.863s1.228 3.318 1.4 3.545c.17.23 2.417 3.69 5.856 5.17 1.01.433 1.8.69 2.42.887.84.267 1.6.23 2.2.14.67-.1 2.02-.826 2.304-1.586.28-.76.28-1.414.2-1.554-.085-.14-.314-.23-.656-.4z"/></svg>
+            Veliye Bildir
+          </button>
+          
+          <button id="copy_<%= s.id %>" onclick="copyAbsenceInfo('<%= s.name %> <%= s.surname %>', '<%= s.parent_name || "Belirtilmedi" %>', '<%= s.phone %>', '<%= classData.name %>', '<%= displayDate %>', this.id)"
+                  class="btn btn-s btn-xs" style="gap: 6px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.2); color: var(--primary); font-weight: 700;">
+            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+            Kopyala
+          </button>
+          <% } else { %>
+          <span style="font-size: 11px; color: var(--text3)">No Eksik</span>
+          <% } %>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+  </div>
+  <% } %>
+<% } %>
+
+<!-- Attendance Entry Card -->
+<div class="card">
+  <div class="card-hdr" style="margin-bottom: 20px;">
+    <h2 class="card-title" style="margin:0"><%= existingSession ? 'Yoklamayı Düzenle' : 'Yoklama Girişi Yap' %></h2>
+    <% if (existingSession) { %><span class="bdg bdg-ok">Yoklama Alındı</span><% } else { %><span class="bdg bdg-warn">Alınmadı</span><% } %>
+  </div>
+
+  <% if (students.length === 0) { %>
+  <div class="empty">
+    <div class="empty-t">Öğrenci Yok</div>
+    <div class="empty-d">Bu sınıfa kayıtlı hiçbir öğrenci bulunmuyor.</div>
+    <a href="/sinif/<%= classData.id %>" class="btn btn-p btn-sm">Sınıfa Git</a>
+  </div>
+  <% } else { %>
+  <form method="POST" action="/yoklama/sinif/<%= classData.id %>/tarih/<%= date %>" id="attendanceForm">
+    <div class="lst">
+      <% students.forEach(function(s) { %>
+      <% var record = records.find(function(r) { return r.student_id === s.id; }); %>
+      <% var isPresent = record ? record.status === 'present' : true; %>
+      
+      <!-- Collapsible style toggle item -->
+      <div class="tg" onclick="toggleAt(<%= s.id %>, event)" style="cursor: pointer; user-select: none;">
+        <span class="tg-lb" style="font-size: 14px;"><%= s.name %> <%= s.surname %></span>
+        <div class="tg-ck" style="display: flex; align-items: center; gap: 12px;">
+          <span class="tg-st" id="st_<%= s.id %>" style="color:<%= isPresent ? 'var(--ok)' : 'var(--err)' %>; font-size: 13px; font-weight: 700;"><%= isPresent ? 'Burada' : 'Yok' %></span>
+          <button type="button" class="tg-btn <%= isPresent ? 'on' : '' %>" id="tg_<%= s.id %>" style="pointer-events: none;"></button>
+        </div>
+        <input type="checkbox" name="status[<%= s.id %>]" value="present" <%= isPresent ? 'checked' : '' %> class="tg-inp" id="inp_<%= s.id %>">
+      </div>
+      <% }); %>
+    </div>
+    
+    <button type="submit" class="btn btn-ok btn-blk" style="margin-top:20px; font-weight: 800; font-size: 15px;">
+      <%= existingSession ? 'Yoklamayı Güncelle' : 'Yoklamayı Kaydet' %>
+    </button>
+  </form>
+  <% } %>
+</div>
+
+<script>
+function toggleAt(id, e) {
+  // Prevent double toggles if clicking form inputs directly
+  if (e.target.type === 'checkbox') return;
+  
+  var cb = document.getElementById('inp_' + id);
+  var tg = document.getElementById('tg_' + id);
+  var st = document.getElementById('st_' + id);
+  
+  cb.checked = !cb.checked;
+  if (cb.checked) {
+    tg.classList.add('on');
+    st.textContent = 'Burada';
+    st.style.color = 'var(--ok)';
+  } else {
+    tg.classList.remove('on');
+    st.textContent = 'Yok';
+    st.style.color = 'var(--err)';
+  }
+}
+
+function sendWhatsAppNotification(studentName, parentName, parentPhone, className, dateText) {
+  var cleanedPhone = parentPhone.replace(/\D/g, '');
+  if (cleanedPhone.length === 10) {
+    cleanedPhone = '90' + cleanedPhone;
+  } else if (cleanedPhone.length === 11 && cleanedPhone.startsWith('0')) {
+    cleanedPhone = '90' + cleanedPhone.substring(1);
+  }
+  
+  var text = "Sayın Velimiz " + parentName + ",\n\nÖğrencimiz *" + studentName + "* bugün (" + dateText + ") tarihinde '" + className + "' dersine katılmamıştır. Bilgilerinize sunarız.\n\nİTKAN Kurs Yönetimi";
+  var encodedText = encodeURIComponent(text);
+  
+  window.open("https://wa.me/" + cleanedPhone + "?text=" + encodedText, "_blank");
+}
+
+function copyAbsenceInfo(studentName, parentName, parentPhone, className, dateText, btnId) {
+  var text = "Müdürüm, " + dateText + " tarihinde '" + className + "' dersine katılmayan öğrencimiz:\n" +
+             "👤 Öğrenci: " + studentName + "\n" +
+             "👥 Veli: " + parentName + "\n" +
+             "📞 Telefon: " + parentPhone + "\n\n" +
+             "Arayıp bilgilendirebilir misiniz?";
+             
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function() {
+      showCopiedSuccess(btnId);
+    });
+  } else {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showCopiedSuccess(btnId);
+    } catch (err) {
+      alert('Kopyalanamadı!');
+    }
+    document.body.removeChild(textArea);
+  }
+}
+
+function showCopiedSuccess(btnId) {
+  var btn = document.getElementById(btnId);
+  var origText = btn.innerHTML;
+  btn.innerHTML = `<svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Kopyalandı!`;
+  btn.style.background = "var(--ok-bg)";
+  btn.style.color = "var(--ok-text)";
+  btn.style.borderColor = "rgba(16, 185, 129, 0.3)";
+  
+  setTimeout(function() {
+    btn.innerHTML = origText;
+    btn.style.background = "";
+    btn.style.color = "";
+    btn.style.borderColor = "";
+  }, 2000);
+}
+</script>
+
+<%- include('../partials/footer') %>

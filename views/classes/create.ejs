@@ -1,0 +1,17 @@
+<%- include('../partials/header', { title: 'Sınıf Oluştur' }) %>
+<% currentPage = 'siniflar'; %>
+
+<div class="back" style="margin-bottom:20px">
+  <a href="/siniflar" class="btn btn-s btn-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>
+  <h1 style="font-size:20px;font-weight:700">Sınıf Oluştur</h1>
+</div>
+
+<div class="card">
+  <form method="POST" action="/sinif-ekle">
+    <div class="fg"><label class="fl">Sınıf Adı</label><input type="text" name="name" class="fi" placeholder="Örn: Kuran-ı Kerim Sınıfı" required></div>
+    <div class="fg"><label class="fl">Açıklama <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><textarea name="description" class="fta" rows="3" placeholder="Sınıf hakkında kısa bilgi..."></textarea></div>
+    <button type="submit" class="btn btn-p btn-blk">Sınıfı Oluştur</button>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
