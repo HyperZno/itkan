@@ -101,6 +101,16 @@ async function initialize() {
       created_by INTEGER REFERENCES users(id),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE attendance_sessions ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE surahs ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE elifba_topics ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE homework ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE teacher_notes ENABLE ROW LEVEL SECURITY;
   `);
 
   const surahCount = await db.query('SELECT COUNT(*) as count FROM surahs');
