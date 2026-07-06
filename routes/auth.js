@@ -43,7 +43,7 @@ router.post('/giris', async (req, res) => {
     res.redirect('/dashboard');
   } catch (err) {
     console.error(err);
-    res.render('login', { error: 'Sistem hatası oluştu: ' + err.message });
+    res.render('login', { error: 'Sistem hatası oluştu.' });
   }
 });
 
