@@ -256,9 +256,27 @@ function getAutomaticLocationTimes() {
     function(position) {
       var lat = position.coords.latitude;
       var lon = position.coords.longitude;
-      locText.textContent = 'Konum: Eşleşti (' + lat.toFixed(2) + ', ' + lon.toFixed(2) + ')';
-      document.getElementById('cityBadge').textContent = 'Konum: GPS Aktif';
       
+      // Fetch city name via reverse geocoding
+      var geocodeUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&zoom=10';
+      fetch(geocodeUrl, {
+        headers: { 'Accept-Language': 'tr-TR' }
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(geoData) {
+          var cityName = 'GPS Aktif';
+          if (geoData && geoData.address) {
+            cityName = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.county || geoData.address.province || 'GPS Aktif';
+          }
+          locText.textContent = 'Konum: ' + cityName + ' (' + lat.toFixed(2) + ', ' + lon.toFixed(2) + ')';
+          document.getElementById('cityBadge').textContent = 'Konum: ' + cityName.toUpperCase();
+        })
+        .catch(function(err) {
+          console.error(err);
+          locText.textContent = 'Konum: Eşleşti (' + lat.toFixed(2) + ', ' + lon.toFixed(2) + ')';
+          document.getElementById('cityBadge').textContent = 'Konum: GPS Aktif';
+        });
+
       var url = 'https://api.aladhan.com/v1/timings/' + Math.floor(Date.now() / 1000) + '?latitude=' + lat + '&longitude=' + lon + '&method=13';
       fetchPrayerTimesFromAPI(url);
     },
