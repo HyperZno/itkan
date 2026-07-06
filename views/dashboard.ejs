@@ -43,4 +43,51 @@
 </div>
 <% } %>
 
+<!-- Floating Action Button for Announcement -->
+<div class="fab-container" style="position: fixed; right: 20px; bottom: 76px; z-index: 100;">
+  <button onclick="openAnnouncementModal()" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: #ffffff; border: none; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); cursor: pointer; transition: all 0.2s; outline: none; padding: 0;" title="Yeni Duyuru Yayınla">
+    <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+  </button>
+</div>
+
+<!-- Announcement Creation Modal -->
+<div id="announcementModal" class="dev-modal" style="display: none; align-items: center; justify-content: center; z-index: 120;">
+  <div class="dev-modal-content" style="max-width: 480px; width: 90%; margin: auto; animation: slideUp 0.3s ease; background: #ffffff; border: 1px solid var(--border); box-shadow: var(--shadow-lg); border-radius: 16px; padding: 20px;">
+    <div class="dev-modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
+      <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: var(--text); margin: 0;">
+        <svg style="width: 20px; height: 20px; color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        Yeni Duyuru Yayınla
+      </h3>
+      <button class="dev-close-btn" onclick="closeAnnouncementModal()" style="border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text3);">&times;</button>
+    </div>
+    <div class="dev-modal-body" style="text-align: left;">
+      <form method="POST" action="/duyurular/yayinla?redirect=/dashboard" style="margin: 0;">
+        <div class="fg" style="margin-bottom: 16px;">
+          <label style="font-weight: 700; font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px;">Duyuru Başlığı</label>
+          <input type="text" name="title" class="fi" placeholder="Duyuru başlığını girin" required autocomplete="off" style="width: 100%;">
+        </div>
+        <div class="fg" style="margin-bottom: 20px;">
+          <label style="font-weight: 700; font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px;">Duyuru İçeriği</label>
+          <textarea name="content" class="fi" style="height: 120px; resize: none; font-family: inherit; width: 100%;" placeholder="Diğer öğretmenlere duyurmak istediğiniz metni buraya yazın..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-p btn-blk" style="font-weight: 800; font-size: 14px; width: 100%; height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          Yayınla ve Bildirim Gönder
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openAnnouncementModal() {
+  var modal = document.getElementById('announcementModal');
+  modal.style.display = 'flex';
+}
+function closeAnnouncementModal() {
+  var modal = document.getElementById('announcementModal');
+  modal.style.display = 'none';
+}
+</script>
+
 <%- include('partials/footer') %>

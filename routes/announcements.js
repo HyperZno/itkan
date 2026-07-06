@@ -29,7 +29,7 @@ router.post('/duyurular/yayinla', authenticate, async (req, res) => {
     await db.query('INSERT INTO announcements (title, content, created_by) VALUES ($1, $2, $3)', [
       title.trim(), content.trim(), req.user.id
     ]);
-    res.redirect('/duyurular');
+    res.redirect(req.query.redirect || '/duyurular');
   } catch (err) {
     console.error(err);
     res.status(500).send('Sistem hatası');
