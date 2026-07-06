@@ -2,7 +2,9 @@
 </div></div>
 
 <nav class="bnav">
-  <% (locals.navItems || []).forEach(function(item) { %>
+  <% (locals.navItems || []).filter(function(item) {
+       return item.href !== '/ogrenci-ekle' && item.href !== '/sureler';
+     }).forEach(function(item) { %>
   <a href="<%= item.href %>" class="<%= currentPage === item.href.split('/')[1] ? 'on' : '' %>">
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%= item.icon %>"/></svg>
     <span><%= item.label %></span>

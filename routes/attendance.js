@@ -72,7 +72,7 @@ router.post('/yoklama/sinif/:id/tarih/:date', authenticate, async (req, res) => 
       session = { id: result.rows[0].id };
     }
 
-    const studentsRes = await db.query('SELECT id FROM students WHERE class_id = $1 AND is_active = 1', [req.params.id]);
+    const studentsRes = await db.query('SELECT id FROM students WHERE class_id = $1', [req.params.id]);
     const students = studentsRes.rows;
 
     if (students.length > 0) {

@@ -88,7 +88,7 @@ router.get('/admin/ogretmen/:id', authenticate, requireRole('super_admin'), asyn
     const studentsCountRes = await db.query(`
       SELECT COUNT(DISTINCT s.id) as count FROM students s
       JOIN classes c ON s.class_id = c.id
-      WHERE c.created_by = $1 AND s.is_active = 1
+      WHERE c.created_by = $1 AND c.is_active = 1
     `, [teacherId]);
     const studentsCount = parseInt(studentsCountRes.rows[0].count, 10);
 
@@ -193,7 +193,7 @@ router.post('/admin/ogretmen/:id/duzenle', authenticate, requireRole('super_admi
 router.get('/admin/raporlar', authenticate, requireRole('super_admin'), async (req, res) => {
   try {
     const classesCountRes = await db.query('SELECT COUNT(*) as count FROM classes WHERE is_active = 1');
-    const studentsCountRes = await db.query('SELECT COUNT(*) as count FROM students WHERE is_active = 1');
+    const studentsCountRes = await db.query('SELECT COUNT(*) as count FROM students s JOIN classes c ON s.class_id = c.id WHERE c.is_active = 1');
     const homeworkCountRes = await db.query('SELECT COUNT(*) as count FROM homework');
     const sessionsCountRes = await db.query('SELECT COUNT(*) as count FROM attendance_sessions');
 
@@ -209,7 +209,7 @@ router.get('/admin/raporlar', authenticate, requireRole('super_admin'), async (r
       FROM students s
       JOIN classes c ON s.class_id = c.id
       JOIN homework h ON h.student_id = s.id
-      WHERE h.status = 'completed' AND s.is_active = 1
+      WHERE h.status = 'completed' AND c.is_active = 1
       GROUP BY s.id, s.name, s.surname, c.name
       ORDER BY completed_count DESC LIMIT 5
     `);
@@ -233,11 +233,11 @@ router.get('/admin/raporlar', authenticate, requireRole('super_admin'), async (r
     const topTaker = topTakerRes.rows[0] || null;
 
     const personalId = req.user.id;
-    const personalClassesRes = await db.query('SELECT COUNT(*) as count FROM classes WHERE created_by = $1', [personalId]);
+    const personalClassesRes = await db.query('SELECT COUNT(*) as count FROM classes WHERE created_by = $1 AND is_active = 1', [personalId]);
     const personalStudentsRes = await db.query(`
       SELECT COUNT(DISTINCT s.id) as count FROM students s
       JOIN classes c ON s.class_id = c.id
-      WHERE c.created_by = $1 AND s.is_active = 1
+      WHERE c.created_by = $1 AND c.is_active = 1
     `, [personalId]);
     const personalHomeworksRes = await db.query('SELECT COUNT(*) as count FROM homework WHERE assigned_by = $1', [personalId]);
     const personalSessionsRes = await db.query('SELECT COUNT(*) as count FROM attendance_sessions WHERE created_by = $1', [personalId]);

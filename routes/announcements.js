@@ -57,4 +57,20 @@ router.get('/api/duyurular/son', authenticate, async (req, res) => {
   }
 });
 
+// API endpoint to fetch the latest 5 announcements
+router.get('/api/duyurular/liste', authenticate, async (req, res) => {
+  try {
+    const listRes = await db.query(`
+      SELECT a.id, a.title, a.content, a.created_at, u.display_name as author_name 
+      FROM announcements a
+      JOIN users u ON a.created_by = u.id
+      ORDER BY a.created_at DESC LIMIT 5
+    `);
+    res.json(listRes.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 module.exports = router;
