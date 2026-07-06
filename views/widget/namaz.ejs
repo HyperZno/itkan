@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>İTKAN Namaz Vakitleri Widget</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text2: #475569;
+      --text3: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: transparent;
+      padding: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .widget-card {
+      width: 100%;
+      max-width: 360px;
+      background: linear-gradient(135deg, #022c22 0%, #064e3b 100%);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 20px;
+      padding: 14px;
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(2, 44, 34, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+    .widget-body {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .left-countdown {
+      flex: 1.1;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 16px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+    }
+    .right-times {
+      flex: 1.4;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="widget-card">
+  <div class="widget-body">
+    <!-- Left Countdown Card -->
+    <div class="left-countdown">
+      <div id="prayerTargetLabel" style="font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.85); letter-spacing: 0.5px; margin-bottom: 4px;">Yükleniyor...</div>
+      <div id="prayerCountdown" style="font-size: 24px; font-weight: 800; color: #fbbf24; font-family: monospace; white-space: nowrap;">00:00</div>
+    </div>
+
+    <!-- Right Times List -->
+    <div class="right-times">
+      <div class="time-row" id="row_imsak">
+        <span style="font-weight: 600; color: rgba(255,255,255,0.7);">İmsak</span>
+        <span id="time_imsak" style="font-weight: 700; font-family: monospace;">--:--</span>
+      </div>
+      <div class="time-row" id="row_gunes">
+        <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Güneş</span>
+        <span id="time_gunes" style="font-weight: 700; font-family: monospace;">--:--</span>
+      </div>
+      <div class="time-row" id="row_ogle">
+        <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Öğle</span>
+        <span id="time_ogle" style="font-weight: 700; font-family: monospace;">--:--</span>
+      </div>
+      <div class="time-row" id="row_ikindi">
+        <span style="font-weight: 600; color: rgba(255,255,255,0.7);">İkindi</span>
+        <span id="time_ikindi" style="font-weight: 700; font-family: monospace;">--:--</span>
+      </div>
+      <div class="time-row" id="row_aksam">
+        <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Akşam</span>
+        <span id="time_aksam" style="font-weight: 700; font-family: monospace;">--:--</span>
+      </div>
+      <div class="time-row" id="row_yatsi">
+        <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Yatsı</span>
+        <span id="time_yatsi" style="font-weight: 700; font-family: monospace;">--:--</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer Row -->
+  <div class="footer-row">
+    <span>İTKAN WIDGET</span>
+    <span id="cityBadge">ŞEHİR: İSTANBUL</span>
+  </div>
+</div>
+
+<script>
+var prayerTimings = null;
+var activePrayerTimer = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  initWidget();
+});
+
+function initWidget() {
+  var urlParams = new URLSearchParams(window.location.search);
+  var city = urlParams.get('city');
+  
+  if (city) {
+    document.getElementById('cityBadge').textContent = 'Şehir: ' + getTurkishCityName(city);
+    fetchManualCityTimes(city);
+  } else {
+    getAutomaticLocationTimes();
+  }
+}
+
+function getAutomaticLocationTimes() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        var lat = position.coords.latitude;
+        var lon = position.coords.longitude;
+        
+        var geocodeUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&zoom=10';
+        fetch(geocodeUrl, {
+          headers: { 'Accept-Language': 'tr-TR' }
+        })
+          .then(function(res) { return res.json(); })
+          .then(function(geoData) {
+            var cityName = 'GPS AKTİF';
+            if (geoData && geoData.address) {
+              cityName = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.county || geoData.address.province || 'GPS AKTİF';
+            }
+            document.getElementById('cityBadge').textContent = 'Konum: ' + cityName.toUpperCase();
+          })
+          .catch(function(err) {
+            document.getElementById('cityBadge').textContent = 'Konum: GPS AKTİF';
+          });
+
+        var url = 'https://api.aladhan.com/v1/timings/' + Math.floor(Date.now() / 1000) + '?latitude=' + lat + '&longitude=' + lon + '&method=13';
+        fetchPrayerTimesFromAPI(url);
+      },
+      function(error) {
+        fetchManualCityTimes('Istanbul');
+      }
+    );
+  } else {
+    fetchManualCityTimes('Istanbul');
+  }
+}
+
+function fetchManualCityTimes(city) {
+  var url = 'https://api.aladhan.com/v1/timingsByCity?city=' + encodeURIComponent(city) + '&country=Turkey&method=13';
+  fetchPrayerTimesFromAPI(url);
+}
+
+function fetchPrayerTimesFromAPI(url) {
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && data.data && data.data.timings) {
+        var t = data.data.timings;
+        prayerTimings = {
+          imsak: t.Imsak,
+          gunes: t.Sunrise,
+          ogle: t.Dhuhr,
+          ikindi: t.Asr,
+          aksam: t.Maghrib,
+          yatsi: t.Isha
+        };
+        updateTimingsDisplay();
+        startPrayerCountdown();
+      }
+    })
+    .catch(function(err) {
+      console.error(err);
+      document.getElementById('prayerTargetLabel').textContent = 'Hata';
+    });
+}
+
+function getTurkishCityName(city) {
+  var names = {
+    'Istanbul': 'İstanbul', 'Ankara': 'Ankara', 'Izmir': 'İzmir', 'Bursa': 'Bursa',
+    'Adana': 'Adana', 'Antalya': 'Antalya', 'Konya': 'Konya', 'Gaziantep': 'Gaziantep',
+    'Kayseri': 'Kayseri', 'Diyarbakir': 'Diyarbakır', 'Samsun': 'Samsun', 'Trabzon': 'Trabzon',
+    'Sanliurfa': 'Şanlıurfa', 'Mersin': 'Mersin', 'Sakarya': 'Sakarya'
+  };
+  return names[city] || city;
+}
+
+function updateTimingsDisplay() {
+  if (!prayerTimings) return;
+  var keys = ['imsak', 'gunes', 'ogle', 'ikindi', 'aksam', 'yatsi'];
+  keys.forEach(function(key) {
+    document.getElementById('time_' + key).textContent = prayerTimings[key];
+  });
+}
+
+function startPrayerCountdown() {
+  if (activePrayerTimer) clearInterval(activePrayerTimer);
+  activePrayerTimer = setInterval(updateCountdown, 1000);
+  updateCountdown();
+}
+
+function updateCountdown() {
+  if (!prayerTimings) return;
+
+  var now = new Date();
+  var times = [];
+  var keys = ['imsak', 'gunes', 'ogle', 'ikindi', 'aksam', 'yatsi'];
+  var labels = {
+    imsak: 'İmsak\'a', gunes: 'Güneş\'e', ogle: 'Öğle\'ye',
+    ikindi: 'İkindi\'ye', aksam: 'Akşam\'a', yatsi: 'Yatsı\'ya'
+  };
+
+  keys.forEach(function(key) {
+    var timeStr = prayerTimings[key];
+    var parts = timeStr.split(':');
+    var d = new Date();
+    d.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0, 0);
+    times.push({ key: key, time: d });
+  });
+
+  var nextIndex = -1;
+  for (var i = 0; i < times.length; i++) {
+    if (times[i].time > now) {
+      nextIndex = i;
+      break;
+    }
+  }
+
+  var targetTime = null;
+  var targetLabel = '';
+  var activeIndex = -1;
+
+  if (nextIndex === -1) {
+    var tom = new Date();
+    tom.setDate(tom.getDate() + 1);
+    var parts = prayerTimings.imsak.split(':');
+    tom.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0, 0);
+    
+    targetTime = tom;
+    targetLabel = 'İmsak\'a';
+    activeIndex = 5;
+  } else {
+    targetTime = times[nextIndex].time;
+    targetLabel = labels[times[nextIndex].key];
+    activeIndex = nextIndex - 1;
+    if (activeIndex === -1) activeIndex = 5;
+  }
+
+  document.querySelectorAll('.time-row').forEach(function(el) {
+    el.style.background = 'none';
+    el.style.border = '1px solid transparent';
+  });
+  
+  var activeKey = keys[activeIndex];
+  var activeRow = document.getElementById('row_' + activeKey);
+  if (activeRow) {
+    activeRow.style.background = 'rgba(255, 255, 255, 0.08)';
+    activeRow.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+  }
+
+  var diffMs = targetTime - now;
+  if (diffMs <= 0) {
+    fetchPrayerTimesFromAPI('https://api.aladhan.com/v1/timingsByCity?city=Istanbul&country=Turkey&method=13');
+    return;
+  }
+
+  var diffSecs = Math.floor(diffMs / 1000);
+  document.getElementById('prayerTargetLabel').textContent = targetLabel;
+
+  if (diffSecs > 3600) {
+    var hours = Math.floor(diffSecs / 3600);
+    var mins = Math.floor((diffSecs % 3600) / 60);
+    var hStr = hours < 10 ? '0' + hours : hours;
+    var mStr = mins < 10 ? '0' + mins : mins;
+    document.getElementById('prayerCountdown').textContent = hStr + ' : ' + mStr;
+  } else {
+    var mins = Math.floor(diffSecs / 60);
+    var secs = diffSecs % 60;
+    var mStr = mins < 10 ? '0' + mins : mins;
+    var sStr = secs < 10 ? '0' + secs : secs;
+    document.getElementById('prayerCountdown').textContent = mStr + ' : ' + sStr;
+  }
+}
+</script>
+</body>
+</html>

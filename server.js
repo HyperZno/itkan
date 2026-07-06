@@ -66,6 +66,10 @@ app.use(notesRoutes);
 app.use(adminRoutes);
 app.use(announcementsRoutes);
 
+app.get('/widget/namaz', (req, res) => {
+  res.render('widget/namaz');
+});
+
 app.get('/', (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.redirect('/giris');
