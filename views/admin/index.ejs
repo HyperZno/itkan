@@ -3,9 +3,14 @@
 
 <div class="hdr">
   <h1>Admin Paneli</h1>
-  <a href="/admin/olustur" class="btn btn-p btn-sm" style="gap:6px">
-    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Yeni
-  </a>
+  <div style="display: flex; gap: 8px;">
+    <a href="/admin/raporlar" class="btn btn-s btn-sm" style="gap:6px; background: #6366f1; color: #fff;">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Raporlar
+    </a>
+    <a href="/admin/olustur" class="btn btn-p btn-sm" style="gap:6px">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Yeni
+    </a>
+  </div>
 </div>
 
 <div class="card">
@@ -17,17 +22,18 @@
       <div class="lst-c"><div class="lst-t"><a href="/admin/ogretmen/<%= u.id %>" style="color: var(--primary); font-weight: 700; text-decoration: underline;"><%= u.display_name %></a></div><div class="lst-s">@<%= u.username %></div></div>
       <span class="bdg <%= u.role === 'super_admin' ? 'bdg-warn' : 'bdg-info' %>"><%= u.role === 'super_admin' ? 'Süper Admin' : 'Admin' %></span>
     </div>
-    <% if (u.role !== 'super_admin') { %>
-    <div style="display:flex;gap:6px;padding:0 0 12px 0;flex-wrap:wrap">
-      <form method="POST" action="/admin/sifre-sifirla/<%= u.id %>" style="display:flex;gap:4px;flex:1;min-width:180px">
-        <input type="password" name="new_password" class="fi fi-sm" style="flex:1" placeholder="Yeni şifre" required>
-        <button type="submit" class="btn btn-s btn-xs" style="background:#f59e0b;color:#fff">Sıfırla</button>
+    <div style="display:flex;gap:6px;padding:0 0 12px 0;flex-wrap:wrap;align-items:center;">
+      <a href="/admin/ogretmen/<%= u.id %>/duzenle" class="btn btn-s btn-xs" style="gap:4px;background:#6366f1;color:#fff">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>Düzenle
+      </a>
+      <% if (u.role !== 'super_admin') { %>
+      <form method="POST" action="/admin/sil/<%= u.id %>" style="margin:0">
+        <button type="submit" class="btn btn-err btn-xs" style="display:flex;align-items:center;gap:4px;">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Sil
+        </button>
       </form>
-      <form method="POST" action="/admin/sil/<%= u.id %>">
-        <button type="submit" class="btn btn-err btn-xs">Sil</button>
-      </form>
+      <% } %>
     </div>
-    <% } %>
   </div>
   <% if (i < admins.length - 1) { %><div style="border-bottom:1px solid #f3f4f6;margin-bottom:4px"></div><% } %>
   <% }); %>
