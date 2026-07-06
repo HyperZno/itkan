@@ -36,10 +36,10 @@ router.post('/giris', async (req, res) => {
     const token = jwt.sign(
       { id: user.id, username: user.username, display_name: user.display_name, role: user.role },
       SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '365d' }
     );
 
-    res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, { httpOnly: true, maxAge: 365 * 24 * 60 * 60 * 1000 });
     res.redirect('/dashboard');
   } catch (err) {
     console.error(err);
