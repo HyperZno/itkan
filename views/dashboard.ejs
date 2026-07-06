@@ -411,16 +411,21 @@ function updateCountdown() {
   }
 
   var diffSecs = Math.floor(diffMs / 1000);
-  var hours = Math.floor(diffSecs / 3600);
-  var mins = Math.floor((diffSecs % 3600) / 60);
-  var secs = diffSecs % 60;
-
-  var hStr = hours < 10 ? '0' + hours : hours;
-  var mStr = mins < 10 ? '0' + mins : mins;
-  var sStr = secs < 10 ? '0' + secs : secs;
-
   document.getElementById('prayerTargetLabel').textContent = targetLabel;
-  document.getElementById('prayerCountdown').textContent = hStr + ':' + mStr + ':' + sStr;
+
+  if (diffSecs > 3600) {
+    var hours = Math.floor(diffSecs / 3600);
+    var mins = Math.floor((diffSecs % 3600) / 60);
+    var hStr = hours < 10 ? '0' + hours : hours;
+    var mStr = mins < 10 ? '0' + mins : mins;
+    document.getElementById('prayerCountdown').textContent = hStr + ' : ' + mStr;
+  } else {
+    var mins = Math.floor(diffSecs / 60);
+    var secs = diffSecs % 60;
+    var mStr = mins < 10 ? '0' + mins : mins;
+    var sStr = secs < 10 ? '0' + secs : secs;
+    document.getElementById('prayerCountdown').textContent = mStr + ' : ' + sStr;
+  }
 }
 
 function triggerPrayerAlarm(prayerKey) {
