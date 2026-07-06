@@ -68,32 +68,40 @@
     </button>
     <a href="/dashboard" class="topbar-brand">İTKAN</a>
   </div>
-  <div class="profile-container" style="width: auto;">
-    <button class="profile-btn-mobile" onclick="toggleProfileDropdown(event, 'mobileDropdown')">
-      <%= currentUser.display_name.charAt(0).toUpperCase() %>
-    </button>
-    <div class="profile-dropdown mobile-dropdown-pos" id="mobileDropdown">
-      <div class="dropdown-header">
-        <div class="dropdown-avatar"><%= currentUser.display_name.charAt(0).toUpperCase() %></div>
-        <div>
-          <div class="dropdown-name"><%= currentUser.display_name %></div>
-          <div class="dropdown-username">@<%= currentUser.username %></div>
+  <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+    <!-- Notification Bell -->
+    <a href="/duyurular" class="bell-btn" style="position: relative; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: var(--text2); transition: all 0.2s;" aria-label="Bildirimler">
+      <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span id="bellBadge" style="display: none; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; border: 1px solid #ffffff;"></span>
+    </a>
+
+    <div class="profile-container" style="width: auto;">
+      <button class="profile-btn-mobile" onclick="toggleProfileDropdown(event, 'mobileDropdown')">
+        <%= currentUser.display_name.charAt(0).toUpperCase() %>
+      </button>
+      <div class="profile-dropdown mobile-dropdown-pos" id="mobileDropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-avatar"><%= currentUser.display_name.charAt(0).toUpperCase() %></div>
+          <div>
+            <div class="dropdown-name"><%= currentUser.display_name %></div>
+            <div class="dropdown-username">@<%= currentUser.username %></div>
+          </div>
         </div>
+        <div class="dropdown-divider"></div>
+        <a href="/sifre-degistir" class="dropdown-item" style="color: var(--text2); margin-bottom: 4px;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          Şifre Değiştir
+        </a>
+        <a href="/cikis" class="dropdown-item logout-link">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Çıkış Yap
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="#" onclick="openDeveloperModal(event)" class="dropdown-item" style="color: var(--text2); margin-bottom: 4px;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Yapımcı Hakkında
+        </a>
       </div>
-      <div class="dropdown-divider"></div>
-      <a href="/sifre-degistir" class="dropdown-item" style="color: var(--text2); margin-bottom: 4px;">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-        Şifre Değiştir
-      </a>
-      <a href="/cikis" class="dropdown-item logout-link">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-        Çıkış Yap
-      </a>
-      <div class="dropdown-divider"></div>
-      <a href="#" onclick="openDeveloperModal(event)" class="dropdown-item" style="color: var(--text2); margin-bottom: 4px;">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Yapımcı Hakkında
-      </a>
     </div>
   </div>
 </header>
@@ -141,6 +149,54 @@ window.addEventListener('click', function(event) {
     closeDeveloperModal();
   }
 });
+
+// HTML5 Notification and Announcement Sync
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof Notification !== 'undefined') {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    checkNewAnnouncements();
+  }
+});
+
+function checkNewAnnouncements() {
+  fetch('/api/duyurular/son')
+    .then(function(res) { return res.json(); })
+    .then(function(announcement) {
+      if (!announcement) return;
+      
+      var lastReadId = localStorage.getItem('last_announcement_id');
+      var badge = document.getElementById('bellBadge');
+      
+      if (lastReadId !== announcement.id.toString()) {
+        if (badge) badge.style.display = 'block';
+        
+        if (Notification.permission === 'granted' && document.visibilityState !== 'visible') {
+          var notification = new Notification(announcement.title, {
+            body: announcement.content,
+            icon: '/logo.png'
+          });
+          notification.onclick = function() {
+            window.focus();
+            window.location.href = '/duyurular';
+          };
+        }
+        
+        if (window.location.pathname === '/duyurular') {
+          localStorage.setItem('last_announcement_id', announcement.id.toString());
+          if (badge) badge.style.display = 'none';
+        }
+      } else {
+        if (window.location.pathname === '/duyurular' && badge) {
+          badge.style.display = 'none';
+        }
+      }
+    })
+    .catch(function(err) {
+      console.error('Error fetching announcements:', err);
+    });
+}
 </script>
 
 <!-- Developer Info Modal -->

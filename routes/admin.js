@@ -74,4 +74,73 @@ router.post('/admin/sifre-sifirla/:id', authenticate, requireRole('super_admin')
   }
 });
 
+router.get('/admin/ogretmen/:id', authenticate, requireRole('super_admin'), async (req, res) => {
+  try {
+    const teacherId = req.params.id;
+    
+    const teacherRes = await db.query('SELECT id, username, display_name, role, created_at FROM users WHERE id = $1', [teacherId]);
+    const teacher = teacherRes.rows[0];
+    if (!teacher) return res.status(404).send('Öğretmen bulunamadı');
+
+    const classesCountRes = await db.query('SELECT COUNT(*) as count FROM classes WHERE created_by = $1', [teacherId]);
+    const classesCount = parseInt(classesCountRes.rows[0].count, 10);
+
+    const studentsCountRes = await db.query(`
+      SELECT COUNT(DISTINCT s.id) as count FROM students s
+      JOIN classes c ON s.class_id = c.id
+      WHERE c.created_by = $1 AND s.is_active = 1
+    `, [teacherId]);
+    const studentsCount = parseInt(studentsCountRes.rows[0].count, 10);
+
+    const homeworkCountRes = await db.query('SELECT COUNT(*) as count FROM homework WHERE assigned_by = $1', [teacherId]);
+    const homeworkCount = parseInt(homeworkCountRes.rows[0].count, 10);
+
+    const homeworkStatusRes = await db.query(`
+      SELECT status, COUNT(*) as count FROM homework 
+      WHERE assigned_by = $1 
+      GROUP BY status
+    `, [teacherId]);
+    
+    const homeworkStats = { completed: 0, in_progress: 0, not_started: 0 };
+    homeworkStatusRes.rows.forEach(r => {
+      homeworkStats[r.status] = parseInt(r.count, 10);
+    });
+
+    const sessionsCountRes = await db.query('SELECT COUNT(*) as count FROM attendance_sessions WHERE created_by = $1', [teacherId]);
+    const sessionsCount = parseInt(sessionsCountRes.rows[0].count, 10);
+
+    const notesCountRes = await db.query('SELECT COUNT(*) as count FROM teacher_notes WHERE created_by = $1', [teacherId]);
+    const notesCount = parseInt(notesCountRes.rows[0].count, 10);
+
+    const recentHomeworksRes = await db.query(`
+      SELECT h.*, 
+             s.name as student_name, s.surname as student_surname,
+             c.name as class_name,
+             su.name as surah_name, 
+             e.name as elifba_name
+      FROM homework h
+      JOIN students s ON h.student_id = s.id
+      JOIN classes c ON s.class_id = c.id
+      LEFT JOIN surahs su ON h.surah_id = su.id
+      LEFT JOIN elifba_topics e ON h.elifba_topic_id = e.id
+      WHERE h.assigned_by = $1
+      ORDER BY h.assigned_date DESC, h.id DESC LIMIT 10
+    `, [teacherId]);
+
+    res.render('admin/teacher_detail', {
+      teacher,
+      classesCount,
+      studentsCount,
+      homeworkCount,
+      homeworkStats,
+      sessionsCount,
+      notesCount,
+      recentHomeworks: recentHomeworksRes.rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Sistem hatası');
+  }
+});
+
 module.exports = router;

@@ -102,6 +102,14 @@ async function initialize() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS announcements (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
+      created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
     ALTER TABLE users ENABLE ROW LEVEL SECURITY;
     ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
     ALTER TABLE students ENABLE ROW LEVEL SECURITY;
@@ -111,6 +119,7 @@ async function initialize() {
     ALTER TABLE elifba_topics ENABLE ROW LEVEL SECURITY;
     ALTER TABLE homework ENABLE ROW LEVEL SECURITY;
     ALTER TABLE teacher_notes ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
   `);
 
   const surahCount = await db.query('SELECT COUNT(*) as count FROM surahs');

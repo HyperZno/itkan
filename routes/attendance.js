@@ -61,7 +61,7 @@ router.get('/yoklama/sinif/:id/tarih/:date', authenticate, async (req, res) => {
 
 router.post('/yoklama/sinif/:id/tarih/:date', authenticate, async (req, res) => {
   const selectedDate = req.params.date;
-  const { status } = req.body;
+  const { present_students } = req.body;
 
   try {
     const sessionRes = await db.query('SELECT * FROM attendance_sessions WHERE class_id = $1 AND date = $2', [req.params.id, selectedDate]);
@@ -72,15 +72,24 @@ router.post('/yoklama/sinif/:id/tarih/:date', authenticate, async (req, res) => 
       session = { id: result.rows[0].id };
     }
 
-    const studentsRes = await db.query('SELECT id FROM students WHERE class_id = $1', [req.params.id]);
+    const studentsRes = await db.query('SELECT id FROM students WHERE class_id = $1 AND is_active = 1', [req.params.id]);
     const students = studentsRes.rows;
 
     if (students.length > 0) {
+      const presentSet = new Set();
+      if (present_students) {
+        if (Array.isArray(present_students)) {
+          present_students.forEach(id => presentSet.add(parseInt(id, 10)));
+        } else {
+          presentSet.add(parseInt(present_students, 10));
+        }
+      }
+
       let placeholders = [];
       let values = [];
       let idx = 1;
       for (const student of students) {
-        const s = status && status[student.id] ? 'present' : 'absent';
+        const s = presentSet.has(student.id) ? 'present' : 'absent';
         placeholders.push(`($${idx}, $${idx+1}, $${idx+2})`);
         values.push(session.id, student.id, s);
         idx += 3;

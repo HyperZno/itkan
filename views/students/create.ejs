@@ -136,7 +136,7 @@
       <div class="lst-r">
         <a href="/ogrenci/<%= s.id %>" class="btn btn-xs btn-s">Ödevler</a>
         <a href="/ogrenci/<%= s.id %>/duzenle" class="btn btn-xs btn-s">Düzenle</a>
-        <form method="POST" action="/ogrenci/<%= s.id %>/sil" onsubmit="return confirm('Öğrenci silinsin mi?')" style="margin: 0;">
+        <form method="POST" action="/ogrenci/<%= s.id %>/sil" style="margin: 0;">
           <button type="submit" class="btn btn-xs btn-err">Sil</button>
         </form>
       </div>

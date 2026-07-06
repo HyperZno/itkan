@@ -91,7 +91,7 @@
           <span class="tg-st" id="st_<%= s.id %>" style="color:<%= isPresent ? 'var(--ok)' : 'var(--err)' %>; font-size: 13px; font-weight: 700;"><%= isPresent ? 'Burada' : 'Yok' %></span>
           <button type="button" class="tg-btn <%= isPresent ? 'on' : '' %>" id="tg_<%= s.id %>" style="pointer-events: none;"></button>
         </div>
-        <input type="checkbox" name="status[<%= s.id %>]" value="present" <%= isPresent ? 'checked' : '' %> class="tg-inp" id="inp_<%= s.id %>">
+        <input type="checkbox" name="present_students" value="<%= s.id %>" <%= isPresent ? 'checked' : '' %> class="tg-inp" id="inp_<%= s.id %>">
       </div>
       <% }); %>
     </div>

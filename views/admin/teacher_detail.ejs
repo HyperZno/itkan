@@ -1,0 +1,126 @@
+<%- include('../partials/header', { title: 'Öğretmen Analizi' }) %>
+<% currentPage = 'admin'; %>
+
+<div class="back" style="margin-bottom:24px">
+  <a href="/admin" class="btn btn-s btn-ico"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></a>
+  <div>
+    <h1 style="font-size:20px;font-weight:800;line-height:1.2">Öğretmen Analizi</h1>
+    <span style="font-size:12px;color:var(--text2);font-weight:500">Yönetim Paneli</span>
+  </div>
+</div>
+
+<!-- Profile Info Card -->
+<div class="card" style="margin-bottom: 20px;">
+  <div style="display: flex; align-items: center; gap: 16px;">
+    <div class="lst-av" style="width: 60px; height: 60px; font-size: 24px; background: #ccfbf1; color: #0a6e6a;">
+      <%= teacher.display_name.charAt(0).toUpperCase() %>
+    </div>
+    <div>
+      <h2 style="font-size: 18px; font-weight: 800; color: var(--text); margin: 0;"><%= teacher.display_name %></h2>
+      <div style="font-size: 13px; color: var(--text2); margin-top: 2px;">
+        @<%= teacher.username %> • <span class="bdg bdg-info" style="font-size: 11px;"><%= teacher.role === 'super_admin' ? 'Süper Admin' : 'Öğretmen / Admin' %></span>
+      </div>
+      <div style="font-size: 11px; color: var(--text3); margin-top: 6px;">
+        Kayıt Tarihi: <%= new Date(teacher.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics Metrics -->
+<div class="stats" style="margin-bottom: 20px;">
+  <div class="stat">
+    <div class="stat-ico" style="background: rgba(13, 148, 136, 0.1); color: #0d9488; border-color: rgba(13, 148, 136, 0.2);">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+    </div>
+    <div class="stat-lb">Sorumlu Sınıflar</div>
+    <div class="stat-val"><%= classesCount %></div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-ico" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border-color: rgba(99, 102, 241, 0.2);">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+    </div>
+    <div class="stat-lb">Toplam Öğrenciler</div>
+    <div class="stat-val"><%= studentsCount %></div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-ico" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+    </div>
+    <div class="stat-lb">Verdiği Ödevler</div>
+    <div class="stat-val"><%= homeworkCount %></div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-ico" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2);">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    </div>
+    <div class="stat-lb">Alınan Yoklamalar</div>
+    <div class="stat-val"><%= sessionsCount %></div>
+  </div>
+</div>
+
+<!-- Homework Breakdown Card -->
+<div class="card" style="margin-bottom: 20px;">
+  <h2 class="card-title" style="margin-bottom: 16px;">Ödev Başarı İstatistikleri</h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
+    <div style="background: var(--ok-bg); padding: 12px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
+      <div style="font-size: 20px; font-weight: 800; color: var(--ok-text);"><%= homeworkStats.completed %></div>
+      <div style="font-size: 11px; color: var(--ok-text); font-weight: 600; margin-top: 4px;">Ezberledi</div>
+    </div>
+    <div style="background: var(--warn-bg); padding: 12px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.1);">
+      <div style="font-size: 20px; font-weight: 800; color: var(--warn-text);"><%= homeworkStats.in_progress %></div>
+      <div style="font-size: 11px; color: var(--warn-text); font-weight: 600; margin-top: 4px;">Çalışıyor</div>
+    </div>
+    <div style="background: var(--err-bg); padding: 12px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.1);">
+      <div style="font-size: 20px; font-weight: 800; color: var(--err-text);"><%= homeworkStats.not_started %></div>
+      <div style="font-size: 11px; color: var(--err-text); font-weight: 600; margin-top: 4px;">Başlamadı</div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Homework Assignments List -->
+<div class="card">
+  <h2 class="card-title" style="margin-bottom: 16px;">Son Verilen Ödevler</h2>
+  <% if (recentHomeworks.length === 0) { %>
+    <div class="empty" style="padding: 24px 0;">
+      <div class="empty-t" style="font-size: 14px;">Henüz Ödev Vermedi</div>
+    </div>
+  <% } else { %>
+    <div class="lst">
+      <% recentHomeworks.forEach(function(hw, index) { %>
+        <div class="lst-it" style="cursor: default; padding: 12px 0;">
+          <div class="lst-av" style="width: 32px; height: 32px; font-size: 12px; background: #f1f5f9; color: #475569;">
+            <%= hw.student_name.charAt(0).toUpperCase() %>
+          </div>
+          <div class="lst-c">
+            <div class="lst-t" style="font-size: 13px; font-weight: 700; color: var(--text);">
+              <%= hw.student_name %> <%= hw.student_surname %>
+            </div>
+            <div class="lst-s" style="font-size: 11px; color: var(--text2); margin-top: 2px;">
+              <%= hw.class_name %> • 
+              <% if (hw.type === 'elifba') { %>
+                Elifba: <%= hw.lesson_number %>. <%= hw.elifba_name %>
+              <% } else { %>
+                <%= hw.surah_name %> (Ayat <%= hw.start_ayah %>-<%= hw.end_ayah %>)
+              <% } %>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+            <span class="bdg <%= hw.status === 'completed' ? 'bdg-ok' : (hw.status === 'in_progress' ? 'bdg-warn' : 'bdg-err') %>" style="font-size: 10px; padding: 2px 8px;">
+              <%= hw.status === 'completed' ? 'Ezberledi' : (hw.status === 'in_progress' ? 'Çalışıyor' : 'Başlamadı') %>
+            </span>
+            <span style="font-size: 10px; color: var(--text3);"><%= new Date(hw.assigned_date).toLocaleDateString('tr-TR') %></span>
+          </div>
+        </div>
+        <% if (index < recentHomeworks.length - 1) { %>
+          <div style="border-bottom: 1px solid #f1f5f9;"></div>
+        <% } %>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

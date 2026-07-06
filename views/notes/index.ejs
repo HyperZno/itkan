@@ -30,7 +30,7 @@
       <span class="nc-date"><%= new Date(n.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></span>
     </div>
     <% if (n.created_by === currentUser.id || currentUser.role === 'super_admin') { %>
-    <form method="POST" action="/notlar/<%= n.id %>/sil" onsubmit="return confirm('Not silinsin mi?')" style="margin:0"><button type="submit" class="btn btn-ghost btn-xs" style="color:#dc2626">Sil</button></form>
+    <form method="POST" action="/notlar/<%= n.id %>/sil" style="margin:0"><button type="submit" class="btn btn-ghost btn-xs" style="color:#dc2626">Sil</button></form>
     <% } %>
   </div>
   <div class="nc-c"><%= n.content %></div>

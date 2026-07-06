@@ -14,7 +14,7 @@
   <div>
     <div class="lst-it" style="cursor:default;padding:12px 0">
       <div class="lst-av" style="background:<%= u.role === 'super_admin' ? '#fef3c7' : '#ccfbf1' %>;color:<%= u.role === 'super_admin' ? '#d97706' : '#0a6e6a' %>"><%= u.display_name.charAt(0) %></div>
-      <div class="lst-c"><div class="lst-t"><%= u.display_name %></div><div class="lst-s">@<%= u.username %></div></div>
+      <div class="lst-c"><div class="lst-t"><a href="/admin/ogretmen/<%= u.id %>" style="color: var(--primary); font-weight: 700; text-decoration: underline;"><%= u.display_name %></a></div><div class="lst-s">@<%= u.username %></div></div>
       <span class="bdg <%= u.role === 'super_admin' ? 'bdg-warn' : 'bdg-info' %>"><%= u.role === 'super_admin' ? 'Süper Admin' : 'Admin' %></span>
     </div>
     <% if (u.role !== 'super_admin') { %>
@@ -23,7 +23,7 @@
         <input type="password" name="new_password" class="fi fi-sm" style="flex:1" placeholder="Yeni şifre" required>
         <button type="submit" class="btn btn-s btn-xs" style="background:#f59e0b;color:#fff">Sıfırla</button>
       </form>
-      <form method="POST" action="/admin/sil/<%= u.id %>" onsubmit="return confirm('<%= u.display_name %> silinsin mi?')">
+      <form method="POST" action="/admin/sil/<%= u.id %>">
         <button type="submit" class="btn btn-err btn-xs">Sil</button>
       </form>
     </div>

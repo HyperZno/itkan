@@ -110,7 +110,7 @@
       </div>
       <div class="lst-r">
         <a href="/ogrenci/<%= s.id %>" class="btn btn-xs btn-s">Detay</a>
-        <form method="POST" action="/ogrenci/<%= s.id %>/sil" onsubmit="return confirm('Silinsin mi?')" style="margin:0">
+        <form method="POST" action="/ogrenci/<%= s.id %>/sil" style="margin:0">
           <button type="submit" class="btn btn-xs btn-err">Sil</button>
         </form>
       </div>
@@ -133,7 +133,7 @@
 <% } %>
 
 <div style="margin-top:24px;text-align:center">
-  <form method="POST" action="/sinif/<%= classData.id %>/sil" onsubmit="return confirm('Sınıf silinsin mi? Tüm veriler kaybolacak!')">
+  <form method="POST" action="/sinif/<%= classData.id %>/sil">
     <button type="submit" class="btn btn-err btn-sm">Sınıfı Sil</button>
   </form>
 </div>
