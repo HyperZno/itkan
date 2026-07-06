@@ -3,50 +3,64 @@
 
 <div class="hdr"><h1>Ana Sayfa</h1><span class="hdr-sub"><%= new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span></div>
 
-<!-- Prayer Times Widget Container -->
-<div class="card" style="background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 24px; padding: 20px; color: #ffffff; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(2, 44, 34, 0.25); position: relative; overflow: hidden;">
-  <!-- Settings Button -->
-  <button onclick="openPrayerSettingsModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: rgba(255, 255, 255, 0.6); cursor: pointer; transition: color 0.2s; padding: 4px;" title="Namaz Vakitleri Ayarları">
-    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-  </button>
+<!-- Consent Permission Banner -->
+<div id="permissionBanner" style="display: none; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #ffffff; padding: 16px; border-radius: 16px; margin-bottom: 24px; box-shadow: var(--shadow); align-items: center; justify-content: space-between; gap: 12px;">
+  <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
+    <span style="font-size: 24px; flex-shrink: 0;">🔔</span>
+    <div>
+      <div style="font-size: 13px; font-weight: 800; line-height: 1.2;">Sesli Ezan ve Bildirimleri Etkinleştirin</div>
+      <div style="font-size: 11px; color: rgba(255, 255, 255, 0.85); margin-top: 2px;">Ezan vakitlerinde bildirim almak ve ses çalabilmek için erişime izin verin.</div>
+    </div>
+  </div>
+  <button onclick="requestAudioAndNotificationPermission()" style="background: #ffffff; color: #4f46e5; border: none; font-weight: 800; font-size: 11px; padding: 8px 14px; border-radius: 8px; cursor: pointer; flex-shrink: 0; box-shadow: var(--shadow-sm);">İzin Ver</button>
+</div>
 
+<!-- Prayer Times Widget Container -->
+<div class="card" style="background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 24px; padding: 20px; color: #ffffff; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(2, 44, 34, 0.25); position: relative; overflow: hidden;">
   <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
     <!-- Left Countdown Card -->
     <div style="flex: 1.2; min-width: 140px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 24px 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 140px; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05);">
       <div id="prayerTargetLabel" style="font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.85); letter-spacing: 0.5px; margin-bottom: 8px;">Yükleniyor...</div>
-      <div id="prayerCountdown" style="font-size: 38px; font-weight: 800; color: #fbbf24; font-family: monospace; line-height: 1.1; letter-spacing: -1px; text-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);">00:00</div>
+      <div id="prayerCountdown" style="font-size: 38px; font-weight: 800; color: #fbbf24; font-family: monospace; line-height: 1.1; letter-spacing: -1px;">00:00</div>
     </div>
 
     <!-- Right Times List -->
     <div style="flex: 1.5; min-width: 180px; display: flex; flex-direction: column; gap: 4px;">
-      <div class="time-row" id="row_imsak" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 13px;">
+      <div class="time-row" id="row_imsak" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: all 0.2s;">
         <span style="font-weight: 600; color: rgba(255,255,255,0.7);">İmsak</span>
         <span id="time_imsak" style="font-weight: 700; font-family: monospace;">--:--</span>
       </div>
-      <div class="time-row" id="row_gunes" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 13px;">
+      <div class="time-row" id="row_gunes" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: all 0.2s;">
         <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Güneş</span>
         <span id="time_gunes" style="font-weight: 700; font-family: monospace;">--:--</span>
       </div>
-      <div class="time-row" id="row_ogle" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 13px;">
+      <div class="time-row" id="row_ogle" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: all 0.2s;">
         <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Öğle</span>
         <span id="time_ogle" style="font-weight: 700; font-family: monospace;">--:--</span>
       </div>
-      <div class="time-row" id="row_ikindi" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 13px;">
+      <div class="time-row" id="row_ikindi" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: all 0.2s;">
         <span style="font-weight: 600; color: rgba(255,255,255,0.7);">İkindi</span>
         <span id="time_ikindi" style="font-weight: 700; font-family: monospace;">--:--</span>
       </div>
-      <div class="time-row" id="row_aksam" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 13px;">
+      <div class="time-row" id="row_aksam" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: all 0.2s;">
         <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Akşam</span>
         <span id="time_aksam" style="font-weight: 700; font-family: monospace;">--:--</span>
       </div>
-      <div class="time-row" id="row_yatsi" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 13px;">
+      <div class="time-row" id="row_yatsi" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: all 0.2s;">
         <span style="font-weight: 600; color: rgba(255,255,255,0.7);">Yatsı</span>
         <span id="time_yatsi" style="font-weight: 700; font-family: monospace;">--:--</span>
       </div>
     </div>
   </div>
   
-  <div id="cityBadge" style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); margin-top: 14px; text-align: right; letter-spacing: 0.5px;">Şehir: İstanbul</div>
+  <!-- Widget Footer -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; font-size: 11px;">
+    <button onclick="openPrayerSettingsModal()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #ffffff; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 11px; font-weight: 700;">
+      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span>Ayarlar</span>
+    </button>
+    <span id="cityBadge" style="font-weight: 700; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); letter-spacing: 0.5px;">Şehir: İstanbul</span>
+  </div>
 </div>
 
 <!-- Prayer Times Settings Modal -->
@@ -60,7 +74,17 @@
       <button class="dev-close-btn" onclick="closePrayerSettingsModal()" style="border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text3);">&times;</button>
     </div>
     <div class="dev-modal-body" style="text-align: left;">
+      <!-- Method Selector Segment -->
       <div class="fg" style="margin-bottom: 16px;">
+        <label style="font-weight: 700; font-size: 12px; color: var(--text2); display: block; margin-bottom: 6px;">Vakit Belirleme Yöntemi</label>
+        <div style="display: flex; background: #f1f5f9; padding: 4px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 4px;">
+          <button type="button" id="btnModeAuto" onclick="changePrayerModeSetting('auto')" style="flex: 1; border: none; font-size: 11px; font-weight: 700; padding: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: none; color: var(--text3);">Otomatik (Konum)</button>
+          <button type="button" id="btnModeManual" onclick="changePrayerModeSetting('manual')" style="flex: 1; border: none; font-size: 11px; font-weight: 700; padding: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: none; color: var(--text3);">Manuel (Şehir)</button>
+        </div>
+      </div>
+
+      <!-- Manual Selector Group -->
+      <div class="fg" id="manualCityGroup" style="margin-bottom: 16px;">
         <label style="font-weight: 700; font-size: 12px; color: var(--text2); display: block; margin-bottom: 6px;">Şehir Seçin</label>
         <select id="prayerCitySelect" onchange="changePrayerCity()" class="fi" style="width: 100%; appearance: none; background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23475569%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 9l6 6 6-6%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px;">
           <option value="Istanbul">İstanbul</option>
@@ -79,6 +103,12 @@
           <option value="Mersin">Mersin</option>
           <option value="Sakarya">Sakarya</option>
         </select>
+      </div>
+
+      <!-- Auto Mode Geolocation Info -->
+      <div class="fg" id="autoLocationInfo" style="margin-bottom: 16px; display: none; font-size: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px 12px; color: #065f46; align-items: center; gap: 8px;">
+        <svg style="width: 16px; height: 16px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span id="locStatusText">Konum izni bekleniyor...</span>
       </div>
       
       <div style="margin-bottom: 12px; font-weight: 700; font-size: 12px; color: var(--text2);">Sesli Ezan Alarmları</div>
@@ -106,7 +136,7 @@
         </div>
       </div>
       
-      <button onclick="testAdhanSound()" class="btn btn-s" style="margin-top: 16px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--primary); color: #fff; border: none;">
+      <button onclick="testAdhanSound()" class="btn btn-s" style="margin-top: 16px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--primary); color: #fff; border: none; font-weight: 700;">
         <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
         Sesi Test Et (Ezan Oynat)
       </button>
@@ -115,27 +145,161 @@
 </div>
 
 <script>
-// Prayer Times Widget Script
 var prayerTimings = null;
 var activePrayerTimer = null;
 var lastPlayedPrayer = '';
 
 document.addEventListener('DOMContentLoaded', function() {
   initPrayerWidget();
+  checkConsentBanner();
 });
 
-function initPrayerWidget() {
-  var savedCity = localStorage.getItem('prayer_city') || 'Istanbul';
-  document.getElementById('prayerCitySelect').value = savedCity;
-  document.getElementById('cityBadge').textContent = 'Şehir: ' + getTurkishCityName(savedCity);
+function checkConsentBanner() {
+  var unlocked = localStorage.getItem('adhan_audio_unlocked') === 'true';
+  var hasNotification = typeof Notification !== 'undefined' && Notification.permission === 'granted';
+  
+  if (!unlocked || !hasNotification) {
+    document.getElementById('permissionBanner').style.display = 'flex';
+  }
+}
 
+function requestAudioAndNotificationPermission() {
+  if (typeof Notification !== 'undefined') {
+    Notification.requestPermission();
+  }
+
+  var audio = new Audio('/audio/ezan.mp3');
+  audio.volume = 0.01;
+  audio.play()
+    .then(function() {
+      localStorage.setItem('adhan_audio_unlocked', 'true');
+      document.getElementById('permissionBanner').style.display = 'none';
+      alert('Ezan sesleri ve bildirimleri başarıyla aktifleştirildi!');
+    })
+    .catch(function(e) {
+      console.error('Audio context lock error', e);
+      localStorage.setItem('adhan_audio_unlocked', 'true');
+      document.getElementById('permissionBanner').style.display = 'none';
+    });
+}
+
+function initPrayerWidget() {
   var alarmKeys = ['imsak', 'ogle', 'ikindi', 'aksam', 'yatsi'];
   alarmKeys.forEach(function(key) {
     var enabled = localStorage.getItem('alarm_' + key) !== 'false';
     document.getElementById('alarm_' + key).checked = enabled;
   });
 
-  fetchPrayerTimes(savedCity);
+  var savedMode = localStorage.getItem('prayer_mode') || 'manual';
+  applyPrayerModeUI(savedMode);
+  fetchPrayerTimes();
+}
+
+function applyPrayerModeUI(mode) {
+  var btnAuto = document.getElementById('btnModeAuto');
+  var btnManual = document.getElementById('btnModeManual');
+  var manualGroup = document.getElementById('manualCityGroup');
+  var autoGroup = document.getElementById('autoLocationInfo');
+
+  if (mode === 'auto') {
+    btnAuto.style.background = '#ffffff';
+    btnAuto.style.color = 'var(--primary)';
+    btnAuto.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    btnManual.style.background = 'none';
+    btnManual.style.color = 'var(--text3)';
+    btnManual.style.boxShadow = 'none';
+    
+    manualGroup.style.display = 'none';
+    autoGroup.style.display = 'flex';
+  } else {
+    btnManual.style.background = '#ffffff';
+    btnManual.style.color = 'var(--primary)';
+    btnManual.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    btnAuto.style.background = 'none';
+    btnAuto.style.color = 'var(--text3)';
+    btnAuto.style.boxShadow = 'none';
+    
+    manualGroup.style.display = 'block';
+    autoGroup.style.display = 'none';
+  }
+}
+
+function changePrayerModeSetting(mode) {
+  localStorage.setItem('prayer_mode', mode);
+  applyPrayerModeUI(mode);
+  fetchPrayerTimes();
+}
+
+function fetchPrayerTimes() {
+  var mode = localStorage.getItem('prayer_mode') || 'manual';
+  if (mode === 'auto') {
+    getAutomaticLocationTimes();
+  } else {
+    var savedCity = localStorage.getItem('prayer_city') || 'Istanbul';
+    document.getElementById('prayerCitySelect').value = savedCity;
+    document.getElementById('cityBadge').textContent = 'Şehir: ' + getTurkishCityName(savedCity);
+    fetchManualCityTimes(savedCity);
+  }
+}
+
+function getAutomaticLocationTimes() {
+  var locText = document.getElementById('locStatusText');
+  locText.textContent = 'Konum alınıyor...';
+
+  if (!navigator.geolocation) {
+    locText.textContent = 'GPS Desteklenmiyor. Şehir modu devrede.';
+    changePrayerModeSetting('manual');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      var lat = position.coords.latitude;
+      var lon = position.coords.longitude;
+      locText.textContent = 'Konum: Eşleşti (' + lat.toFixed(2) + ', ' + lon.toFixed(2) + ')';
+      document.getElementById('cityBadge').textContent = 'Konum: GPS Aktif';
+      
+      var url = 'https://api.aladhan.com/v1/timings/' + Math.floor(Date.now() / 1000) + '?latitude=' + lat + '&longitude=' + lon + '&method=13';
+      fetchPrayerTimesFromAPI(url);
+    },
+    function(error) {
+      console.error(error);
+      locText.textContent = 'Konum alınamadı. Şehir modu yükleniyor.';
+      setTimeout(function() {
+        changePrayerModeSetting('manual');
+      }, 1500);
+    },
+    { timeout: 10000 }
+  );
+}
+
+function fetchManualCityTimes(city) {
+  var url = 'https://api.aladhan.com/v1/timingsByCity?city=' + encodeURIComponent(city) + '&country=Turkey&method=13';
+  fetchPrayerTimesFromAPI(url);
+}
+
+function fetchPrayerTimesFromAPI(url) {
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && data.data && data.data.timings) {
+        var t = data.data.timings;
+        prayerTimings = {
+          imsak: t.Imsak,
+          gunes: t.Sunrise,
+          ogle: t.Dhuhr,
+          ikindi: t.Asr,
+          aksam: t.Maghrib,
+          yatsi: t.Isha
+        };
+        updateTimingsDisplay();
+        startPrayerCountdown();
+      }
+    })
+    .catch(function(err) {
+      console.error('API Error:', err);
+      document.getElementById('prayerTargetLabel').textContent = 'Bağlantı Hatası';
+    });
 }
 
 function getTurkishCityName(city) {
@@ -157,31 +321,6 @@ function getTurkishCityName(city) {
     'Sakarya': 'Sakarya'
   };
   return names[city] || city;
-}
-
-function fetchPrayerTimes(city) {
-  var url = 'https://api.aladhan.com/v1/timingsByCity?city=' + encodeURIComponent(city) + '&country=Turkey&method=13';
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data && data.data && data.data.timings) {
-        var t = data.data.timings;
-        prayerTimings = {
-          imsak: t.Imsak,
-          gunes: t.Sunrise,
-          ogle: t.Dhuhr,
-          ikindi: t.Asr,
-          aksam: t.Maghrib,
-          yatsi: t.Isha
-        };
-        updateTimingsDisplay();
-        startPrayerCountdown();
-      }
-    })
-    .catch(function(err) {
-      console.error('Error fetching prayer times:', err);
-      document.getElementById('prayerTargetLabel').textContent = 'Bağlantı Hatası';
-    });
 }
 
 function updateTimingsDisplay() {
@@ -255,20 +394,19 @@ function updateCountdown() {
   document.querySelectorAll('.time-row').forEach(function(el) {
     el.style.background = 'none';
     el.style.border = '1px solid transparent';
-    el.style.color = '#ffffff';
   });
   
   var activeKey = keys[activeIndex];
   var activeRow = document.getElementById('row_' + activeKey);
   if (activeRow) {
-    activeRow.style.background = 'rgba(255, 255, 255, 0.12)';
-    activeRow.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+    activeRow.style.background = 'rgba(255, 255, 255, 0.08)';
+    activeRow.style.border = '1px solid rgba(255, 255, 255, 0.15)';
   }
 
   var diffMs = targetTime - now;
   if (diffMs <= 0) {
     triggerPrayerAlarm(targetKey);
-    fetchPrayerTimes(document.getElementById('prayerCitySelect').value);
+    fetchPrayerTimes();
     return;
   }
 
@@ -298,7 +436,7 @@ function triggerPrayerAlarm(prayerKey) {
 function playAdhanSound(prayerKey) {
   var audio = new Audio('/audio/ezan.mp3');
   audio.play().catch(function(e) {
-    console.log('Audio autoplay blocked', e);
+    console.log('Autoplay blocked. User interaction required.', e);
   });
 
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -320,10 +458,10 @@ function testAdhanSound() {
   var audio = new Audio('/audio/ezan.mp3');
   audio.play()
     .then(function() {
-      alert('Ezan sesi çalınıyor!');
+      alert('Ezan sesi başarıyla çalınıyor!');
     })
     .catch(function(e) {
-      alert('Ses çalınamadı. Sayfada bir yere tıklayarak izin verin.');
+      alert('Ses çalınamadı. Lütfen ses izinlerini onaylayın.');
     });
 }
 
