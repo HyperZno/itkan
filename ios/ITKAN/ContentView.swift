@@ -52,6 +52,13 @@ struct WebView: UIViewRepresentable {
         let webConfiguration = WKWebViewConfiguration()
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.allowsBackForwardNavigationGestures = true
+        
+        webView.evaluateJavaScript("navigator.userAgent") { (result, error) in
+            if let userAgent = result as? String {
+                webView.customUserAgent = userAgent + " ITKAN_APP_V2"
+            }
+        }
+        
         return webView
     }
     

@@ -16,5 +16,40 @@
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show')}
 </script>
 <% } %>
+
+<!-- Uygulama Güncelleme Modalı (Eski Sürüm WebView Tespiti) -->
+<div id="updateAppModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 999999; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px);">
+  <div style="background: #ffffff; max-width: 420px; width: 100%; padding: 30px; text-align: center; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); font-family: 'Inter', sans-serif;">
+    <div style="font-size: 50px; margin-bottom: 20px;">📲</div>
+    <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 12px; font-family: 'Inter', sans-serif;">Uygulama Güncellemesi Gerekli</h3>
+    <p style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 24px; font-family: 'Inter', sans-serif;">
+      Yeni ödev sistemi (sayfa/detay girişi), arama yapılabilir sure seçimi, günlük yoklama hatırlatıcı bildirimleri ve konum izinlerinin çalışabilmesi için lütfen uygulamanın güncel sürümünü (v2) indirin.
+    </p>
+    <a href="/itkan-v2.apk" download style="display: flex; justify-content: center; align-items: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 12px; background: #0f172a; color: #ffffff; transition: background 0.2s;">
+      Güncellemeyi İndir (APK)
+    </a>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var ua = navigator.userAgent;
+  
+  // WebView Tespiti (Android / iOS)
+  var isAndroidWebView = ua.includes('Version/4.0') && (ua.includes('Chrome') || ua.includes('wv') || ua.includes('Android'));
+  var isIOSWebView = (ua.includes('iPad') || ua.includes('iPhone') || ua.includes('iPod')) && !ua.includes('Safari');
+  var isWebView = isAndroidWebView || isIOSWebView;
+  
+  // Yeni uygulamanın User-Agent işareti (ITKAN_APP_V2)
+  var isUpdatedApp = ua.includes('ITKAN_APP_V2');
+  
+  if (isWebView && !isUpdatedApp) {
+    var modal = document.getElementById('updateAppModal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+});
+</script>
 </body>
 </html>

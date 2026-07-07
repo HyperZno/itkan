@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
+        webSettings.setUserAgentString(webSettings.getUserAgentString() + " ITKAN_APP_V2");
         
         // Çerezleri (Cookie) aktif et
         CookieManager.getInstance().setAcceptCookie(true);
