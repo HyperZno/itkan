@@ -69,38 +69,38 @@ router.get('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
 });
 
 router.post('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
-  const { type, surah_id, elifba_topic_id, start_ayah, end_ayah, due_date, notes } = req.body;
+  const { type, surah_id, elifba_topic_text, page_number, page_detail, due_date, notes } = req.body;
   const today = new Date().toISOString().split('T')[0];
 
   try {
     if (type === 'surah') {
-      if (!surah_id) return res.status(400).send('Sure secimi gerekli');
+      if (!surah_id) return res.status(400).send('Sure seçimi gerekli');
       
       const surahRes = await db.query('SELECT * FROM surahs WHERE id = $1', [surah_id]);
       const surah = surahRes.rows[0];
-      if (!surah) return res.status(404).send('Sure bulunamadi');
+      if (!surah) return res.status(404).send('Sure bulunamadı');
 
       await db.query(`
-        INSERT INTO homework (student_id, type, surah_id, start_ayah, end_ayah, assigned_by, assigned_date, due_date, notes, status)
+        INSERT INTO homework (student_id, type, surah_id, page_number, page_detail, assigned_by, assigned_date, due_date, notes, status)
         VALUES ($1, 'surah', $2, $3, $4, $5, $6, $7, $8, 'not_started')
       `, [
         req.params.studentId, 
         surah_id, 
-        start_ayah || 1, 
-        end_ayah || surah.ayah_count, 
+        page_number || '', 
+        page_detail || '', 
         req.user.id, 
         today, 
         due_date || null, 
         notes || ''
       ]);
     } else {
-      if (!elifba_topic_id) return res.status(400).send('Elifba konusu secimi gerekli');
+      if (!elifba_topic_text) return res.status(400).send('Elifba konusu yazılması gerekli');
       await db.query(`
-        INSERT INTO homework (student_id, type, elifba_topic_id, assigned_by, assigned_date, due_date, notes, status)
+        INSERT INTO homework (student_id, type, elifba_topic_text, assigned_by, assigned_date, due_date, notes, status)
         VALUES ($1, 'elifba', $2, $3, $4, $5, $6, 'not_started')
       `, [
         req.params.studentId, 
-        elifba_topic_id, 
+        elifba_topic_text, 
         req.user.id, 
         today, 
         due_date || null, 

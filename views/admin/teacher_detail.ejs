@@ -102,9 +102,9 @@
             <div class="lst-s" style="font-size: 11px; color: var(--text2); margin-top: 2px;">
               <%= hw.class_name %> • 
               <% if (hw.type === 'elifba') { %>
-                Elifba: <%= hw.lesson_number %>. <%= hw.elifba_name %>
+                Elifba: <%= hw.elifba_topic_text || (hw.lesson_number ? hw.lesson_number + '. ' + hw.elifba_name : '') %>
               <% } else { %>
-                <%= hw.surah_name %> (Ayat <%= hw.start_ayah %>-<%= hw.end_ayah %>)
+                <%= hw.surah_name %><%= hw.page_number ? ' - S. ' + hw.page_number + (hw.page_detail ? ' (' + hw.page_detail + ')' : '') : (hw.start_ayah ? ' (Ayet ' + hw.start_ayah + '-' + hw.end_ayah + ')' : '') %>
               <% } %>
             </div>
           </div>

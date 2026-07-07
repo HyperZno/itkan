@@ -82,6 +82,9 @@ async function initialize() {
       type VARCHAR(50) NOT NULL DEFAULT 'surah',
       surah_id INTEGER REFERENCES surahs(id),
       elifba_topic_id INTEGER REFERENCES elifba_topics(id),
+      elifba_topic_text VARCHAR(255),
+      page_number VARCHAR(50),
+      page_detail VARCHAR(255),
       start_ayah INTEGER DEFAULT 1,
       end_ayah INTEGER,
       status VARCHAR(50) NOT NULL DEFAULT 'not_started',
@@ -121,6 +124,10 @@ async function initialize() {
     ALTER TABLE teacher_notes ENABLE ROW LEVEL SECURITY;
     ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
   `);
+
+  await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS elifba_topic_text VARCHAR(255);');
+  await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS page_number VARCHAR(50);');
+  await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS page_detail VARCHAR(255);');
 
   const surahCount = await db.query('SELECT COUNT(*) as count FROM surahs');
   if (parseInt(surahCount.rows[0].count, 10) === 0) {

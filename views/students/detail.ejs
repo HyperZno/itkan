@@ -37,21 +37,21 @@
       <div>
         <div class="hwc-s">
           <% if (h.type === 'elifba') { %>
-            📖 Elifba - <%= h.lesson_number || '' %>. Konu
+            📖 Elifba <%= h.elifba_topic_text ? '' : (h.lesson_number ? '- ' + h.lesson_number + '. Konu' : '') %>
           <% } else { %>
-            📖 <%= h.surah_name %> Süresi
+            📖 <%= h.surah_name %> Suresi
           <% } %>
         </div>
         <div class="hwc-a">
           <% if (h.type === 'elifba') { %>
-            <%= h.elifba_topic_name || '' %>
+            <%= h.elifba_topic_text || h.elifba_topic_name || '' %>
             <% if (h.elifba_url) { %>
               <div style="margin-top: 6px;">
                 <a href="<%= h.elifba_url %>" target="_blank" class="sec-lk" style="font-size: 11px; font-weight: 700; text-decoration: underline;">Diyanet'te Çalış ➔</a>
               </div>
             <% } %>
           <% } else { %>
-            <%= h.start_ayah %>-<%= h.end_ayah %>. ayetler
+            <%= h.page_number ? 'S. ' + h.page_number + (h.page_detail ? ' (' + h.page_detail + ')' : '') : (h.start_ayah ? h.start_ayah + '-' + h.end_ayah + '. ayetler' : '') %>
           <% } %>
         </div>
       </div>

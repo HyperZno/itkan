@@ -17,45 +17,23 @@
 
     <div id="surahSection">
       <div class="fg"><label class="fl">Sure Seç</label>
-        <select name="surah_id" class="fs" id="surahSelect" onchange="updateAyat()">
-          <option value="">Sure seçin...</option>
+        <input type="text" id="surahSearchInput" class="fi" placeholder="Sure adı yazın veya seçin..." list="surahDatalist" oninput="onSurahInputChange()" autocomplete="off">
+        <input type="hidden" name="surah_id" id="surahIdInput">
+        <datalist id="surahDatalist">
           <% surahs.forEach(function(s) { %>
-          <option value="<%= s.id %>" data-ayahs="<%= s.ayah_count %>"><%= s.order_index %>. <%= s.name %> (<%= s.ayah_count %> ayet)</option>
+          <option value="<%= s.order_index %>. <%= s.name %>" data-id="<%= s.id %>"></option>
           <% }); %>
-        </select>
+        </datalist>
       </div>
       <div class="flex-2">
-        <div class="fg"><label class="fl">Başlangıç Ayeti</label><input type="number" name="start_ayah" class="fi" id="startAyah" value="1" min="1"></div>
-        <div class="fg"><label class="fl">Bitiş Ayeti</label><input type="number" name="end_ayah" class="fi" id="endAyah" min="1"></div>
+        <div class="fg"><label class="fl">Sayfa No <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><input type="text" name="page_number" class="fi" id="pageNumberInput" placeholder="Örn: 77"></div>
+        <div class="fg"><label class="fl">Ayetler / Detay <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><input type="text" name="page_detail" class="fi" id="pageDetailInput" placeholder="Örn: 3. ve 4. ayetler"></div>
       </div>
     </div>
 
     <div id="elifbaSection" style="display:none">
-      <div class="fg"><label class="fl">Elifba Konusu</label>
-        <select name="elifba_topic_id" class="fs" id="elifbaTopicSelect" onchange="updateElifbaNotes()">
-          <option value="">Konu seçin...</option>
-          <% elifbaTopics.forEach(function(t) { %>
-          <option value="<%= t.id %>"><%= t.lesson_number %>. <%= t.name %></option>
-          <% }); %>
-        </select>
-      </div>
-      <div class="fg">
-        <label class="fl">Ders Aralığı / Detay</label>
-        <select id="elifbaRangeSelect" class="fs" onchange="updateElifbaNotes()">
-          <option value="">Seçiniz...</option>
-          <option value="Tamamı">Sayfanın Tamamı</option>
-          <option value="Yarısı">Sayfanın Yarısı</option>
-          <option value="1. Satır">1. Satır</option>
-          <option value="2. Satır">2. Satır</option>
-          <option value="3. Satır">3. Satır</option>
-          <option value="4. Satır">4. Satır</option>
-          <option value="5. Satır">5. Satır</option>
-          <option value="6. Satır">6. Satır</option>
-          <option value="7. Satır">7. Satır</option>
-          <option value="8. Satır">8. Satır</option>
-          <option value="özel">Özel Aralık...</option>
-        </select>
-        <input type="text" id="elifbaCustomRange" class="fi" placeholder="Örn: 1. ve 2. Satırlar" style="margin-top: 8px; display: none;" oninput="updateElifbaNotes()">
+      <div class="fg"><label class="fl">Elifba Konusu / Sayfa</label>
+        <input type="text" name="elifba_topic_text" class="fi" id="elifbaTopicInput" placeholder="Örn: Harfler, Sayfa 5 veya 10. Ders" autocomplete="off">
       </div>
     </div>
 
@@ -73,52 +51,38 @@ function switchTab(type) {
   document.getElementById('surahSection').style.display = type === 'surah' ? 'block' : 'none';
   document.getElementById('elifbaSection').style.display = type === 'elifba' ? 'block' : 'none';
   if (type === 'surah') {
-    document.querySelector('[name="surah_id"]').required = true;
-    document.querySelector('[name="elifba_topic_id"]').required = false;
+    document.getElementById('surahIdInput').required = true;
+    document.getElementById('elifbaTopicInput').required = false;
     document.getElementById('hwNotes').value = "";
   } else {
-    document.querySelector('[name="surah_id"]').required = false;
-    document.querySelector('[name="elifba_topic_id"]').required = true;
-    updateElifbaNotes();
+    document.getElementById('surahIdInput').required = false;
+    document.getElementById('elifbaTopicInput').required = true;
   }
 }
 
-function updateElifbaNotes() {
-  var topicSelect = document.getElementById('elifbaTopicSelect');
-  var rangeSelect = document.getElementById('elifbaRangeSelect');
-  var customInput = document.getElementById('elifbaCustomRange');
-  var notesArea = document.getElementById('hwNotes');
+function onSurahInputChange() {
+  var input = document.getElementById('surahSearchInput');
+  var val = input.value.trim().toLowerCase();
+  var opts = document.getElementById('surahDatalist').options;
+  var idInput = document.getElementById('surahIdInput');
   
-  if (topicSelect.value === '') {
-    notesArea.value = '';
-    return;
-  }
+  idInput.value = "";
+  if (!val) return;
   
-  var topicText = topicSelect.options[topicSelect.selectedIndex].text;
-  var rangeVal = rangeSelect.value;
-  var rangeText = '';
-  
-  if (rangeVal === 'özel') {
-    customInput.style.display = 'block';
-    rangeText = customInput.value;
-  } else {
-    customInput.style.display = 'none';
-    rangeText = rangeVal ? rangeSelect.options[rangeSelect.selectedIndex].text : '';
-  }
-  
-  var noteVal = topicText;
-  if (rangeText) {
-    noteVal += ' - ' + rangeText;
-  }
-  notesArea.value = noteVal;
-}
-
-function updateAyat() {
-  var sel = document.getElementById('surahSelect');
-  var opt = sel.options[sel.selectedIndex];
-  if (opt.dataset.ayahs) {
-    document.getElementById('endAyah').value = opt.dataset.ayahs;
-    document.getElementById('endAyah').max = opt.dataset.ayahs;
+  for (var i = 0; i < opts.length; i++) {
+    var optValue = opts[i].value;
+    var optId = opts[i].getAttribute('data-id');
+    
+    var cleanOptValue = optValue.toLowerCase();
+    var nameOnly = optValue.substring(optValue.indexOf(' ') + 1).toLowerCase();
+    
+    if (cleanOptValue === val || nameOnly === val) {
+      idInput.value = optId;
+      if (nameOnly === val) {
+        input.value = optValue;
+      }
+      break;
+    }
   }
 }
 </script>

@@ -32,6 +32,16 @@
 	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Namaz vakitlerinin doğru hesaplanabilmesi için konum bilgisine ihtiyaç duyulmaktadır.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Arka planda namaz vakitlerinin takip edilmesi ve bildirimlerin doğru zamanda gönderilebilmesi için konum bilgisine ihtiyaç duyulmaktadır.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

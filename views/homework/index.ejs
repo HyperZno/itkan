@@ -7,10 +7,13 @@
 </div>
 
 <div class="card" style="margin-bottom: 20px; padding: 16px;">
-  <div class="flex-gap">
+  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
     <div style="position: relative; flex: 1;">
       <input type="text" id="studentSearch" class="fi" placeholder="Öğrenci adı veya sınıf ara..." oninput="filterStudents()" autocomplete="off">
     </div>
+    <button type="button" class="btn btn-s btn-sm" id="btnFilterToday" onclick="toggleTodayFilter()" style="white-space: nowrap;">
+      Bugün Teslim Olanlar
+    </button>
   </div>
 </div>
 
@@ -38,17 +41,17 @@
           
           <div style="margin-top: 10px;">
             <% if (s.homeworks && s.homeworks.length > 0) { %>
-              <div style="font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px;">Aktif Ödevler:</div>
+              <div class="hw-header" style="font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px;">Aktif Ödevler:</div>
               <% s.homeworks.forEach(function(hw) { %>
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-bottom: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border)">
+                <div class="hw-item" data-due-date="<%= hw.due_date ? new Date(hw.due_date).toISOString().split('T')[0] : '' %>" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-bottom: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border)">
                   <span>
                     <% if (hw.type === 'elifba') { %>
-                      📖 Elifba: <%= hw.lesson_number %>. <%= hw.elifba_topic_name %>
+                      📖 Elifba: <%= hw.elifba_topic_text || (hw.lesson_number ? hw.lesson_number + '. ' + hw.elifba_topic_name : '') %>
                       <% if (hw.elifba_url) { %>
                         <a href="<%= hw.elifba_url %>" target="_blank" class="sec-lk" style="font-size: 10px; font-weight: 700; text-decoration: underline; margin-left: 6px;">Çalış ➔</a>
                       <% } %>
                     <% } else { %>
-                      📖 <%= hw.surah_name %> (<%= hw.start_ayah %>-<%= hw.end_ayah %>. ayet)
+                      📖 <%= hw.surah_name %><%= hw.page_number ? ' - S. ' + hw.page_number + (hw.page_detail ? ' (' + hw.page_detail + ')' : '') : (hw.start_ayah ? ' (' + hw.start_ayah + '-' + hw.end_ayah + '. ayet)' : '') %>
                     <% } %>
                   </span>
                   <span class="bdg <%= hw.status === 'completed' ? 'bdg-ok' : (hw.status === 'in_progress' ? 'bdg-warn' : 'bdg-err') %>" style="padding: 2px 8px; font-size: 10px;">
@@ -75,13 +78,60 @@
 </div>
 
 <script>
+var showOnlyToday = false;
+
+function toggleTodayFilter() {
+  showOnlyToday = !showOnlyToday;
+  var btn = document.getElementById('btnFilterToday');
+  if (showOnlyToday) {
+    btn.className = 'btn btn-p btn-sm';
+  } else {
+    btn.className = 'btn btn-s btn-sm';
+  }
+  filterStudents();
+}
+
 function filterStudents() {
   var q = document.getElementById('studentSearch').value.toLowerCase().trim();
   var items = document.querySelectorAll('.student-item');
+  
+  var localToday = new Date();
+  var offset = localToday.getTimezoneOffset();
+  localToday = new Date(localToday.getTime() - (offset * 60 * 1000));
+  var todayStr = localToday.toISOString().split('T')[0];
+
   items.forEach(function(item) {
     var name = item.dataset.name;
     var cls = item.dataset.class;
-    if (name.includes(q) || cls.includes(q)) {
+    
+    var matchesSearch = name.includes(q) || cls.includes(q);
+    var hwItems = item.querySelectorAll('.hw-item');
+    var hasHwDueToday = false;
+    var visibleHwCount = 0;
+    
+    hwItems.forEach(function(hw) {
+      var dueDate = hw.dataset.dueDate;
+      if (showOnlyToday) {
+        if (dueDate === todayStr) {
+          hw.style.display = 'flex';
+          hasHwDueToday = true;
+          visibleHwCount++;
+        } else {
+          hw.style.display = 'none';
+        }
+      } else {
+        hw.style.display = 'flex';
+        visibleHwCount++;
+      }
+    });
+    
+    var header = item.querySelector('.hw-header');
+    if (header) {
+      header.style.display = visibleHwCount > 0 ? 'block' : 'none';
+    }
+
+    var shouldBeVisible = matchesSearch && (!showOnlyToday || hasHwDueToday);
+    if (shouldBeVisible) {
       item.style.display = 'flex';
     } else {
       item.style.display = 'none';
