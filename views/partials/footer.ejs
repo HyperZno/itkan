@@ -25,11 +25,30 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
     <p style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 24px; font-family: 'Inter', sans-serif;">
       Yeni ödev sistemi (sayfa/detay girişi), arama yapılabilir sure seçimi, günlük yoklama hatırlatıcı bildirimleri ve konum izinlerinin çalışabilmesi için lütfen uygulamanın güncel sürümünü (v2) indirin.
     </p>
-    <a href="/itkan-v2.apk" download style="display: flex; justify-content: center; align-items: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 12px; background: #0f172a; color: #ffffff; transition: background 0.2s;">
+    <a href="/itkan-v2.apk" download style="display: flex; justify-content: center; align-items: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 12px; background: #0f172a; color: #ffffff; transition: background 0.2s; margin-bottom: 12px;">
       Güncellemeyi İndir (APK)
     </a>
+    <button onclick="copyApkLink()" style="display: flex; width: 100%; justify-content: center; align-items: center; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; padding: 10px; font-size: 13px; font-weight: 500; border-radius: 12px; cursor: pointer; transition: all 0.2s; margin-bottom: 16px;">
+      İndirme Linkini Kopyala
+    </button>
+    <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; text-align: left; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 0;">
+      <strong>Önemli Not:</strong> Kullandığınız eski uygulama indirme özelliğini desteklemediği için yukarıdaki buton çalışmayabilir. Lütfen <strong>İndirme Linkini Kopyala</strong> butonuna basıp, telefonunuzun normal tarayıcısını (Chrome/Safari) açarak yapıştırın ve indirin.
+    </p>
   </div>
 </div>
+
+<script>
+function copyApkLink() {
+  var dummy = document.createElement('input');
+  var text = window.location.origin + '/itkan-v2.apk';
+  document.body.appendChild(dummy);
+  dummy.value = text;
+  dummy.select();
+  document.execCommand('copy');
+  document.body.removeChild(dummy);
+  alert('İndirme bağlantısı kopyalandı! Tarayıcınıza (Chrome/Safari) yapıştırarak indirebilirsiniz.');
+}
+</script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
