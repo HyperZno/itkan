@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.WebSettings;
@@ -52,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Günlük yoklama hatırlatıcısını programla
         scheduleDailyReminder();
+
+        // Arka planda kesintisiz çalışma (Pil optimizasyonu muafiyeti) iste
+        requestBatteryOptimizationBypass();
 
         // İndirme isteklerini (APK indirme vb.) yakalamak için
         webView.setDownloadListener(new DownloadListener() {
@@ -114,6 +119,22 @@ public class MainActivity extends AppCompatActivity {
 
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    private void requestBatteryOptimizationBypass() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                try {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
