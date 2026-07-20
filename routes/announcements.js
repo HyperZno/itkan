@@ -48,7 +48,7 @@ router.post('/duyurular/sil/:id', authenticate, async (req, res) => {
   try {
     const annRes = await db.query('SELECT created_by, title FROM announcements WHERE id = $1', [req.params.id]);
     const ann = annRes.rows[0];
-    if (!ann) return res.status(404).send('Duyuru bulunamadı');
+    if (!ann) return res.redirect('/duyurular');
 
     if (req.user.role !== 'super_admin' && req.user.id !== ann.created_by) {
       return res.status(403).send('Bu duyuruyu silme yetkiniz yok');
