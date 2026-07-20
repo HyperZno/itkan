@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../database');
+const { db, logActivity } = require('../database');
 const { authenticate } = require('../middleware/auth');
 
 router.get('/siniflar', authenticate, async (req, res) => {
@@ -28,6 +28,7 @@ router.post('/sinif-ekle', authenticate, async (req, res) => {
   if (!name) return res.status(400).send('Sinif adi gerekli');
   try {
     await db.query('INSERT INTO classes (name, description, created_by) VALUES ($1, $2, $3)', [name, description || '', req.user.id]);
+    await logActivity(req.user.id, 'class_create', `${req.user.display_name} öğretmeni, yeni bir sınıf oluşturdu: ${name}`);
     res.redirect('/siniflar');
   } catch (err) {
     console.error(err);
@@ -87,6 +88,7 @@ router.post('/ogrenci-ekle', authenticate, async (req, res) => {
     ]);
     
     const studentId = result.rows[0].id;
+    await logActivity(req.user.id, 'student_add', `${req.user.display_name} öğretmeni, yeni bir öğrenci ekledi: ${name.trim()} ${finalSurname}`);
     res.redirect(`/ogrenci/${studentId}`);
   } catch (err) {
     console.error(err);
@@ -144,6 +146,7 @@ router.post('/sinif/:id/ogrenci-ekle', authenticate, async (req, res) => {
       }
       const query = `INSERT INTO students (name, surname, tc_kimlik, age, class_id, school_grade, parent_name, phone, address) VALUES ${placeholders.join(', ')}`;
       await db.query(query, values);
+      await logActivity(req.user.id, 'student_add', `${req.user.display_name} öğretmeni, ${classData ? classData.name : ''} sınıfına öğrenci ekledi: ${name.trim().split('\n').join(', ')}`);
     }
     res.redirect(`/sinif/${req.params.id}`);
   } catch (err) {
@@ -168,12 +171,14 @@ router.get('/ogrenci/:id', authenticate, async (req, res) => {
         e.lesson_number,
         e.url as elifba_url,
         u.display_name as teacher_name,
-        u2.display_name as checker_name
+        u2.display_name as checker_name,
+        child.due_date as child_due_date
       FROM homework h
       LEFT JOIN surahs s ON h.surah_id = s.id
       LEFT JOIN elifba_topics e ON h.elifba_topic_id = e.id
       JOIN users u ON h.assigned_by = u.id
       LEFT JOIN users u2 ON h.checked_by = u2.id
+      LEFT JOIN homework child ON child.parent_id = h.id
       WHERE h.student_id = $1
       ORDER BY h.created_at DESC
     `, [req.params.id]);
@@ -222,6 +227,7 @@ router.post('/ogrenci/:id/duzenle', authenticate, async (req, res) => {
       SET name=$1, surname=$2, tc_kimlik=$3, age=$4, class_id=$5, school_grade=$6, parent_name=$7, phone=$8, address=$9 
       WHERE id=$10
     `, [name, finalSurname, finalTc, finalAge, class_id, finalGrade, finalParent, finalPhone, finalAddress, req.params.id]);
+    await logActivity(req.user.id, 'student_edit', `${req.user.display_name} öğretmeni, ${name.trim()} ${finalSurname} isimli öğrencinin bilgilerini güncelledi.`);
     res.redirect(`/ogrenci/${req.params.id}`);
   } catch (err) {
     console.error(err);
@@ -235,11 +241,12 @@ router.post('/ogrenci/:id/sil', authenticate, async (req, res) => {
       return res.status(403).send('Bu işlem için yetkiniz yok. Sadece yöneticiler öğrenci silebilir.');
     }
 
-    const studentRes = await db.query('SELECT class_id FROM students WHERE id = $1', [req.params.id]);
+    const studentRes = await db.query('SELECT name, surname, class_id FROM students WHERE id = $1', [req.params.id]);
     const student = studentRes.rows[0];
     if (!student) return res.status(404).send('Ogrenci bulunamadi');
 
     await db.query('DELETE FROM students WHERE id = $1', [req.params.id]);
+    await logActivity(req.user.id, 'student_delete', `${req.user.display_name} yöneticisi, ${student.name} ${student.surname} isimli öğrenciyi sistemden sildi.`);
     res.redirect(`/sinif/${student.class_id}`);
   } catch (err) {
     console.error(err);
@@ -249,7 +256,10 @@ router.post('/ogrenci/:id/sil', authenticate, async (req, res) => {
 
 router.post('/sinif/:id/sil', authenticate, async (req, res) => {
   try {
+    const classRes = await db.query('SELECT name FROM classes WHERE id = $1', [req.params.id]);
+    const classData = classRes.rows[0];
     await db.query('UPDATE classes SET is_active = 0 WHERE id = $1', [req.params.id]);
+    await logActivity(req.user.id, 'class_delete', `${req.user.display_name} öğretmeni, ${classData ? classData.name : ''} sınıfını sildi/arşivledi.`);
     res.redirect('/siniflar');
   } catch (err) {
     console.error(err);

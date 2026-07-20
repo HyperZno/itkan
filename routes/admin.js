@@ -251,12 +251,21 @@ router.get('/admin/raporlar', authenticate, requireRole('super_admin'), async (r
       notes: parseInt(personalNotesRes.rows[0].count, 10)
     };
 
+    const activityLogsRes = await db.query(`
+      SELECT a.*, u.display_name as user_name, u.role as user_role 
+      FROM activity_logs a 
+      LEFT JOIN users u ON a.user_id = u.id 
+      ORDER BY a.created_at DESC 
+      LIMIT 100
+    `);
+
     res.render('admin/reports', {
       metrics,
       topStudents: topStudentsRes.rows,
       topChecker,
       topTaker,
-      personalStats
+      personalStats,
+      activityLogs: activityLogsRes.rows
     });
   } catch (err) {
     console.error(err);

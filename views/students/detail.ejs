@@ -59,8 +59,8 @@
           <% } %>
         </div>
       </div>
-      <span class="bdg <%= h.status === 'completed' ? 'bdg-ok' : (h.status === 'in_progress' ? 'bdg-warn' : 'bdg-err') %>">
-        <%= h.status === 'completed' ? 'Ezberledi' : (h.status === 'in_progress' ? 'Çalışıyor' : 'Başlamadı') %>
+      <span class="bdg <%= h.status === 'completed' ? 'bdg-ok' : (h.status === 'repeated' ? 'bdg-gray' : 'bdg-warn') %>">
+        <%= h.status === 'completed' ? (h.type === 'ezber' ? 'Ezberledi' : 'Yaptı') : (h.status === 'repeated' ? 'Tekrar Verildi' : 'Çalışıyor') %>
       </span>
     </div>
     <div class="hwc-m">
@@ -69,20 +69,68 @@
       <% if (h.due_date) { %><span>Teslim: <%= new Date(h.due_date).toLocaleDateString('tr-TR') %></span><% } %>
       <% if (h.checker_name) { %><span>Kontrol: <%= h.checker_name %></span><% } %>
     </div>
+    
+    <% if (h.status === 'repeated' && h.child_due_date) { %>
+      <div style="font-size: 11px; color: #d97706; margin-top: 6px; font-weight: 600; background: #fffbeb; padding: 6px 10px; border-radius: 6px; border: 1px solid #fde68a; display: inline-block; width: fit-content;">
+        🔄 Bu ödev <%= new Date(h.child_due_date).toLocaleDateString('tr-TR') %> tarihine tekrar verilmiştir.
+      </div>
+    <% } %>
+    <% if (h.parent_id) { %>
+      <div style="font-size: 11px; color: #059669; margin-top: 6px; font-weight: 600; background: #ecfdf5; padding: 6px 10px; border-radius: 6px; border: 1px solid #a7f3d0; display: inline-block; width: fit-content;">
+        🔄 Bu ödev, yapmadığı bir önceki ödevin tekrarıdır.
+      </div>
+    <% } %>
+
     <% if (h.notes) { %><div class="hwc-n"><%= h.notes %></div><% } %>
-    <div class="hwc-b">
-      <form method="POST" action="/odev/<%= h.id %>/guncelle" style="display:flex;gap:4px;flex-wrap:wrap">
-        <button type="submit" name="status" value="not_started" class="st-btn <%= h.status === 'not_started' ? 's1' : '' %>">Başlamadı</button>
-        <button type="submit" name="status" value="in_progress" class="st-btn <%= h.status === 'in_progress' ? 's2' : '' %>">Çalışıyor</button>
-        <button type="submit" name="status" value="completed" class="st-btn <%= h.status === 'completed' ? 's3' : '' %>">Ezberledi</button>
-      </form>
-      <form method="POST" action="/odev/<%= h.id %>/sil" style="margin-left:auto">
-        <button type="submit" class="btn btn-err btn-xs">Sil</button>
-      </form>
+    
+    <div class="hwc-b" style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; gap:4px; flex-wrap:wrap; width:100%; align-items:center;">
+        <form method="POST" action="/odev/<%= h.id %>/guncelle" style="display:flex; gap:4px; flex-wrap:wrap; margin:0;">
+          <button type="submit" name="status" value="in_progress" class="st-btn <%= h.status === 'in_progress' ? 's2' : '' %>">Çalışıyor</button>
+          <button type="submit" name="status" value="completed" class="st-btn <%= h.status === 'completed' ? 's3' : '' %>">
+            <%= h.type === 'ezber' ? 'Ezberledi' : 'Yaptı' %>
+          </button>
+        </form>
+        <% if (h.status !== 'repeated') { %>
+          <button type="button" class="st-btn" onclick="toggleRepeatForm('<%= h.id %>')" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">Tekrarla</button>
+        <% } %>
+        <form method="POST" action="/odev/<%= h.id %>/sil" style="margin-left:auto; margin-bottom:0;">
+          <button type="submit" class="btn btn-err btn-xs">Sil</button>
+        </form>
+      </div>
+
+      <!-- Inline Repeat Form -->
+      <div id="repeatForm_<%= h.id %>" style="display:none; border-top:1px dashed #cbd5e1; padding-top:8px; margin-top:4px;">
+        <form method="POST" action="/odev/<%= h.id %>/tekrarla" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0;">
+          <div class="fg" style="margin:0; flex:1; min-width:120px;">
+            <label class="fl" style="font-size:10px;">Yeni Teslim Tarihi</label>
+            <input type="date" name="due_date" class="fi" style="padding:4px 8px; font-size:12px; height:32px;" required>
+          </div>
+          <div class="fg" style="margin:0; flex:2; min-width:180px;">
+            <label class="fl" style="font-size:10px;">Not (isteğe bağlı)</label>
+            <input type="text" name="notes" class="fi" style="padding:4px 8px; font-size:12px; height:32px;" placeholder="Örn: Tekrar ödev">
+          </div>
+          <div style="display:flex; gap:4px; margin-top:14px;">
+            <button type="submit" class="btn btn-p btn-sm" style="padding:4px 10px; font-size:11px;">Tekrarla</button>
+            <button type="button" class="btn btn-s btn-sm" style="padding:4px 10px; font-size:11px;" onclick="toggleRepeatForm('<%= h.id %>')">Vazgeç</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
   <% }); %>
   <% } %>
 </div>
+
+<script>
+function toggleRepeatForm(id) {
+  var formDiv = document.getElementById('repeatForm_' + id);
+  if (formDiv.style.display === 'none') {
+    formDiv.style.display = 'block';
+  } else {
+    formDiv.style.display = 'none';
+  }
+}
+</script>
 
 <%- include('../partials/footer') %>

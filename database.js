@@ -113,6 +113,14 @@ async function initialize() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS activity_logs (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      action_type VARCHAR(100) NOT NULL,
+      details TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
     ALTER TABLE users ENABLE ROW LEVEL SECURITY;
     ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
     ALTER TABLE students ENABLE ROW LEVEL SECURITY;
@@ -123,11 +131,13 @@ async function initialize() {
     ALTER TABLE homework ENABLE ROW LEVEL SECURITY;
     ALTER TABLE teacher_notes ENABLE ROW LEVEL SECURITY;
     ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
   `);
 
   await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS elifba_topic_text VARCHAR(255);');
   await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS page_number VARCHAR(50);');
   await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS page_detail VARCHAR(255);');
+  await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES homework(id) ON DELETE SET NULL;');
 
   const surahCount = await db.query('SELECT COUNT(*) as count FROM surahs');
   if (parseInt(surahCount.rows[0].count, 10) === 0) {
@@ -238,4 +248,15 @@ async function seedSuperAdmin() {
   console.log('Süper admin tanımlandı: admin / admin123');
 }
 
-module.exports = { db, initialize };
+async function logActivity(userId, actionType, details) {
+  try {
+    await db.query(
+      'INSERT INTO activity_logs (user_id, action_type, details) VALUES ($1, $2, $3)',
+      [userId, actionType, details]
+    );
+  } catch (err) {
+    console.error('Error logging activity:', err);
+  }
+}
+
+module.exports = { db, initialize, logActivity };

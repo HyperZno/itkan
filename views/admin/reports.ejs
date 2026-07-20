@@ -147,4 +147,73 @@
   </div>
 </div>
 
+<!-- Activity Logs Section -->
+<div class="card" style="margin-top: 24px;">
+  <h2 class="card-title" style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+    <svg style="width: 20px; height: 20px; color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Sistem Aktivite Logları (Son 100 İşlem)
+  </h2>
+
+  <!-- Log Filters -->
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+    <input type="text" id="logSearchInput" class="fi" style="flex: 2; min-width: 200px;" placeholder="Log detaylarında ara..." oninput="filterLogs()">
+    <select id="logActionFilterSelect" class="fi" style="flex: 1; min-width: 150px;" onchange="filterLogs()">
+      <option value="">Tüm İşlem Tipleri</option>
+      <option value="student_add">Öğrenci Ekleme</option>
+      <option value="student_edit">Öğrenci Düzenleme</option>
+      <option value="student_delete">Öğrenci Silme</option>
+      <option value="class_create">Sınıf Oluşturma</option>
+      <option value="class_delete">Sınıf Silme</option>
+      <option value="homework_assign">Ödev Verme</option>
+      <option value="homework_update">Ödev Güncelleme</option>
+      <option value="homework_repeat">Ödev Tekrarlama</option>
+    </select>
+  </div>
+
+  <% if (activityLogs.length === 0) { %>
+    <div class="empty" style="padding: 24px 0;">
+      <div class="empty-t" style="font-size: 13px;">Henüz aktivite kaydı bulunmamaktadır.</div>
+    </div>
+  <% } else { %>
+    <div class="lst" id="logsContainer" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0 12px;">
+      <% activityLogs.forEach(function(log, index) { %>
+        <div class="lst-it log-item" data-action="<%= log.action_type %>" data-details="<%= log.details.toLowerCase() %> <%= log.user_name ? log.user_name.toLowerCase() : '' %>" style="cursor: default; padding: 12px 0; align-items: flex-start; border-bottom: 1px solid rgba(226, 232, 240, 0.5)">
+          <div class="lst-c">
+            <div class="lst-t" style="font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4;">
+              <%= log.details %>
+            </div>
+            <div class="lst-s" style="font-size: 11px; color: var(--text2); margin-top: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span class="bdg bdg-gray" style="font-size: 9px;"><%= log.user_role === 'super_admin' ? 'Yönetici' : 'Öğretmen' %></span>
+              <span>• Yapan: <%= log.user_name || 'Sistem / Silinmiş Kullanıcı' %></span>
+              <span>• <%= new Date(log.created_at).toLocaleString('tr-TR') %></span>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
+<script>
+function filterLogs() {
+  var search = document.getElementById('logSearchInput').value.toLowerCase().trim();
+  var actionFilter = document.getElementById('logActionFilterSelect').value;
+  var items = document.querySelectorAll('.log-item');
+  
+  items.forEach(function(item) {
+    var action = item.getAttribute('data-action');
+    var details = item.getAttribute('data-details') || '';
+    
+    var matchesSearch = (search === '' || details.indexOf(search) > -1);
+    var matchesAction = (actionFilter === '' || action === actionFilter);
+    
+    if (matchesSearch && matchesAction) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+</script>
+
 <%- include('../partials/footer') %>

@@ -15,6 +15,23 @@
       Bugün Teslim Olanlar
     </button>
   </div>
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+    <select id="classFilterSelect" class="fi" style="flex: 1; min-width: 120px;" onchange="filterStudents()">
+      <option value="">Tüm Sınıflar</option>
+    </select>
+    <select id="statusFilterSelect" class="fi" style="flex: 1; min-width: 120px;" onchange="filterStudents()">
+      <option value="">Tüm Ödev Durumları</option>
+      <option value="has_hw">Ödevi Olanlar</option>
+      <option value="no_hw">Ödevi Olmayanlar</option>
+      <option value="overdue">Ödevi Gecikenler</option>
+    </select>
+    <select id="typeFilterSelect" class="fi" style="flex: 1; min-width: 120px;" onchange="filterStudents()">
+      <option value="">Tüm Ödev Tipleri</option>
+      <option value="surah">Sure</option>
+      <option value="elifba">Elifba</option>
+      <option value="ezber">Ezber</option>
+    </select>
+  </div>
 </div>
 
 <div class="lst" id="studentList">
@@ -43,7 +60,7 @@
             <% if (s.homeworks && s.homeworks.length > 0) { %>
               <div class="hw-header" style="font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px;">Aktif Ödevler:</div>
               <% s.homeworks.forEach(function(hw) { %>
-                <div class="hw-item" data-due-date="<%= hw.due_date ? new Date(hw.due_date).toISOString().split('T')[0] : '' %>" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-bottom: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border)">
+                <div class="hw-item" data-type="<%= hw.type %>" data-due-date="<%= hw.due_date ? new Date(hw.due_date).toISOString().split('T')[0] : '' %>" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-bottom: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border)">
                   <span>
                     <% if (hw.type === 'elifba') { %>
                       📖 Elifba: <%= hw.elifba_topic_text || (hw.lesson_number ? hw.lesson_number + '. ' + hw.elifba_topic_name : '') %>
@@ -56,8 +73,8 @@
                       📖 <%= hw.surah_name %><%= hw.page_number ? ' - S. ' + hw.page_number + (hw.page_detail ? ' (' + hw.page_detail + ')' : '') : (hw.start_ayah ? ' (' + hw.start_ayah + '-' + hw.end_ayah + '. ayet)' : '') %>
                     <% } %>
                   </span>
-                  <span class="bdg <%= hw.status === 'completed' ? 'bdg-ok' : (hw.status === 'in_progress' ? 'bdg-warn' : 'bdg-err') %>" style="padding: 2px 8px; font-size: 10px;">
-                    <%= hw.status === 'completed' ? 'Ezberledi' : (hw.status === 'in_progress' ? 'Çalışıyor' : 'Başlamadı') %>
+                  <span class="bdg <%= hw.status === 'completed' ? 'bdg-ok' : 'bdg-warn' %>" style="padding: 2px 8px; font-size: 10px;">
+                    <%= hw.status === 'completed' ? (hw.type === 'ezber' ? 'Ezberledi' : 'Yaptı') : 'Çalışıyor' %>
                   </span>
                 </div>
               <% }); %>
@@ -107,6 +124,10 @@ function turkishNormalize(str) {
 
 function filterStudents() {
   var q = turkishNormalize(document.getElementById('studentSearch').value.trim());
+  var classFilter = document.getElementById('classFilterSelect').value.trim();
+  var statusFilter = document.getElementById('statusFilterSelect').value;
+  var typeFilter = document.getElementById('typeFilterSelect').value;
+  
   var items = document.querySelectorAll('.student-item');
   
   var localToday = new Date();
@@ -116,26 +137,65 @@ function filterStudents() {
 
   items.forEach(function(item) {
     var name = turkishNormalize(item.getAttribute('data-name') || '');
-    var cls = turkishNormalize(item.getAttribute('data-class') || '');
+    var clsRaw = item.getAttribute('data-class') || '';
+    var cls = turkishNormalize(clsRaw);
     
+    // 1. Search Query Match
     var matchesSearch = name.includes(q) || cls.includes(q);
+    
+    // 2. Class Filter Match
+    var matchesClass = (classFilter === '' || clsRaw.trim() === classFilter);
+    
     var hwItems = item.querySelectorAll('.hw-item');
+    
+    // 3. Status Filter Match
+    var matchesStatus = true;
+    if (statusFilter === 'has_hw') {
+      matchesStatus = (hwItems.length > 0);
+    } else if (statusFilter === 'no_hw') {
+      matchesStatus = (hwItems.length === 0);
+    } else if (statusFilter === 'overdue') {
+      var hasOverdue = false;
+      hwItems.forEach(function(hw) {
+        var due = hw.dataset.dueDate;
+        if (due && due < todayStr) {
+          hasOverdue = true;
+        }
+      });
+      matchesStatus = hasOverdue;
+    }
+    
+    // 4. Type Filter Match
+    var matchesType = true;
+    if (typeFilter !== '') {
+      var hasType = false;
+      hwItems.forEach(function(hw) {
+        if (hw.dataset.type === typeFilter) {
+          hasType = true;
+        }
+      });
+      matchesType = hasType;
+    }
+    
+    // 5. Today Filter Match & individual item visibility
     var hasHwDueToday = false;
     var visibleHwCount = 0;
     
     hwItems.forEach(function(hw) {
       var dueDate = hw.dataset.dueDate;
-      if (showOnlyToday) {
-        if (dueDate === todayStr) {
-          hw.style.display = 'flex';
-          hasHwDueToday = true;
-          visibleHwCount++;
-        } else {
-          hw.style.display = 'none';
-        }
-      } else {
+      var hwType = hw.dataset.type;
+      
+      var hwMatchesType = (typeFilter === '' || hwType === typeFilter);
+      var hwMatchesToday = (!showOnlyToday || dueDate === todayStr);
+      
+      if (hwMatchesType && hwMatchesToday) {
         hw.style.display = 'flex';
+        if (dueDate === todayStr) {
+          hasHwDueToday = true;
+        }
         visibleHwCount++;
+      } else {
+        hw.style.display = 'none';
       }
     });
     
@@ -144,7 +204,9 @@ function filterStudents() {
       header.style.display = visibleHwCount > 0 ? 'block' : 'none';
     }
 
-    var shouldBeVisible = matchesSearch && (!showOnlyToday || hasHwDueToday);
+    var matchesToday = (!showOnlyToday || hasHwDueToday);
+    
+    var shouldBeVisible = matchesSearch && matchesClass && matchesStatus && matchesType && matchesToday;
     if (shouldBeVisible) {
       item.style.display = 'flex';
     } else {
@@ -152,6 +214,22 @@ function filterStudents() {
     }
   });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  var classSelect = document.getElementById('classFilterSelect');
+  var classes = new Set();
+  document.querySelectorAll('.student-item').forEach(function(item) {
+    var clsName = item.getAttribute('data-class');
+    if (clsName) classes.add(clsName.trim());
+  });
+  var sortedClasses = Array.from(classes).sort();
+  sortedClasses.forEach(function(cls) {
+    var opt = document.createElement('option');
+    opt.value = cls;
+    opt.textContent = cls;
+    classSelect.appendChild(opt);
+  });
+});
 </script>
 
 <%- include('../partials/footer') %>
