@@ -85,10 +85,13 @@ router.get('/dashboard', authenticate, async (req, res) => {
       ORDER BY n.created_at DESC LIMIT 10
     `);
 
+    const teachersRes = await db.query('SELECT id, display_name, role FROM users ORDER BY display_name ASC');
+
     res.render('dashboard', { 
       classes: classesRes.rows, 
       recentHomework: recentHwRes.rows, 
-      recentNotes: recentNotesRes.rows 
+      recentNotes: recentNotesRes.rows,
+      teachers: teachersRes.rows
     });
   } catch (err) {
     console.error(err);

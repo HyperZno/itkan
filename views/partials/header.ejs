@@ -252,6 +252,14 @@ function checkNewAnnouncements() {
       if (lastReadId !== announcement.id.toString()) {
         if (badge) badge.style.display = 'block';
         
+        // Show auto-popup only if not currently on the Announcements page
+        if (window.location.pathname !== '/duyurular') {
+          showAutoAnnouncement(announcement);
+        } else {
+          localStorage.setItem('last_announcement_id', announcement.id.toString());
+          if (badge) badge.style.display = 'none';
+        }
+        
         if (Notification.permission === 'granted' && document.visibilityState !== 'visible') {
           var notification = new Notification(announcement.title, {
             body: announcement.content,
@@ -261,11 +269,6 @@ function checkNewAnnouncements() {
             window.focus();
             window.location.href = '/duyurular';
           };
-        }
-        
-        if (window.location.pathname === '/duyurular') {
-          localStorage.setItem('last_announcement_id', announcement.id.toString());
-          if (badge) badge.style.display = 'none';
         }
       } else {
         if (window.location.pathname === '/duyurular' && badge) {
@@ -277,6 +280,31 @@ function checkNewAnnouncements() {
       console.error('Error fetching announcements:', err);
     });
 }
+
+function showAutoAnnouncement(a) {
+  document.getElementById('autoAnnouncementTitle').textContent = a.title;
+  document.getElementById('autoAnnouncementContent').textContent = a.content;
+  document.getElementById('autoAnnouncementAuthor').textContent = 'Yayınlayan: ' + a.author_name;
+  
+  var modal = document.getElementById('autoAnnouncementModal');
+  modal.style.display = 'flex';
+  
+  // Set localStorage read status so it only pops up once
+  localStorage.setItem('last_announcement_id', a.id.toString());
+  var badge = document.getElementById('bellBadge');
+  if (badge) badge.style.display = 'none';
+}
+
+function closeAutoAnnouncementModal() {
+  document.getElementById('autoAnnouncementModal').style.display = 'none';
+}
+
+window.addEventListener('click', function(event) {
+  var modal = document.getElementById('autoAnnouncementModal');
+  if (event.target === modal) {
+    closeAutoAnnouncementModal();
+  }
+});
 </script>
 
 <!-- Developer Info Modal -->
@@ -301,6 +329,26 @@ function checkNewAnnouncements() {
           <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
           LinkedIn
         </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Automatic Announcement Popup Modal -->
+<div id="autoAnnouncementModal" class="dev-modal" style="display: none; align-items: center; justify-content: center; z-index: 130;">
+  <div class="dev-modal-content" style="max-width: 480px; width: 90%; margin: auto; animation: slideUp 0.3s ease; border-top: 5px solid var(--primary); background: #ffffff; border: 1px solid var(--border); box-shadow: var(--shadow-lg); border-radius: 16px; padding: 20px;">
+    <div class="dev-modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
+      <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: var(--text); margin: 0;">
+        📢 Yeni Duyuru
+      </h3>
+      <button class="dev-close-btn" onclick="closeAutoAnnouncementModal()" style="border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text3);">&times;</button>
+    </div>
+    <div class="dev-modal-body" style="text-align: left;">
+      <h4 id="autoAnnouncementTitle" style="font-weight: 700; font-size: 15px; color: var(--text); margin-top: 0; margin-bottom: 8px;"></h4>
+      <p id="autoAnnouncementContent" style="font-size: 13px; color: var(--text2); line-height: 1.6; white-space: pre-line; margin-bottom: 20px; max-height: 250px; overflow-y: auto; padding-right: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;"></p>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text3); margin-top: 12px;">
+        <span id="autoAnnouncementAuthor" style="font-weight: 600;"></span>
+        <button onclick="closeAutoAnnouncementModal()" class="btn btn-p btn-sm" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 8px;">Tamam</button>
       </div>
     </div>
   </div>
