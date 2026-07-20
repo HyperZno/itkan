@@ -53,12 +53,16 @@
     <div id="surahSection">
       <div class="fg">
         <label class="fl">Sure(ler) Seçin (Birden fazla seçebilirsiniz)</label>
-        <input type="text" id="surahSearchInput" class="fi" placeholder="Sure ara..." oninput="filterSurahCheckboxes()" style="margin-bottom: 8px;" autocomplete="off">
+        <input type="text" id="surahSearchInput" class="fi" placeholder="Sure ara... (Enter'a basarak seçime ekleyebilirsiniz)" oninput="filterSurahCheckboxes()" style="margin-bottom: 8px;" autocomplete="off">
         <div id="surahCheckboxContainer" style="max-height: 180px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
           <% surahs.forEach(function(s) { %>
-            <label class="surah-checkbox-label" data-name="<%= s.name.toLowerCase() %>" style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--text); user-select: none;">
-              <input type="checkbox" name="surah_ids" value="<%= s.id %>" style="width: 16px; height: 16px;">
-              <span><%= s.order_index %>. <%= s.name %> Suresi</span>
+            <% var isCompleted = typeof completedSurahIds !== 'undefined' && completedSurahIds.includes(s.id); %>
+            <label class="surah-checkbox-label" data-name="<%= s.name.toLowerCase() %>" style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--text); user-select: none; <%= isCompleted ? 'color: #059669; font-weight: 600;' : '' %>">
+              <input type="checkbox" name="surah_ids" value="<%= s.id %>" class="surah-chk" style="width: 16px; height: 16px;">
+              <span>
+                <%= s.order_index %>. <%= s.name %> Suresi
+                <%= isCompleted ? ' (✓ Ezberledi)' : '' %>
+              </span>
             </label>
           <% }); %>
         </div>
@@ -191,6 +195,36 @@ document.getElementById('homeworkForm').addEventListener('submit', function(e) {
     if (checked.length === 0) {
       e.preventDefault();
       alert('Lütfen en az bir sure seçin.');
+    }
+  }
+});
+
+document.getElementById('surahSearchInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    var q = turkishNormalize(this.value.trim());
+    if (!q) return;
+    
+    var labels = document.querySelectorAll('.surah-checkbox-label');
+    var found = false;
+    for (var i = 0; i < labels.length; i++) {
+      var label = labels[i];
+      var name = turkishNormalize(label.getAttribute('data-name') || '');
+      if (name.indexOf(q) > -1) {
+        var chk = label.querySelector('.surah-chk');
+        if (chk && !chk.checked) {
+          chk.checked = true;
+          found = true;
+          label.style.background = "#d1fae5";
+          setTimeout(function(lbl) { lbl.style.background = ""; }, 1000, label);
+        }
+      }
+    }
+    if (found) {
+      this.value = "";
+      filterSurahCheckboxes();
+    } else {
+      alert("Eşleşen yeni sure bulunamadı.");
     }
   }
 });

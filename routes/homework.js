@@ -62,13 +62,21 @@ router.get('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
       WHERE h.student_id = $1 AND h.status = 'in_progress'
     `, [req.params.studentId]);
 
+    const completedSuraRes = await db.query(`
+      SELECT DISTINCT surah_id 
+      FROM homework 
+      WHERE student_id = $1 AND type = 'surah' AND status = 'completed' AND surah_id IS NOT NULL
+    `, [req.params.studentId]);
+    const completedSurahIds = completedSuraRes.rows.map(r => r.surah_id);
+
     const surahsRes = await db.query('SELECT * FROM surahs ORDER BY order_index ASC');
     const elifbaTopicsRes = await db.query('SELECT * FROM elifba_topics ORDER BY lesson_number ASC');
     res.render('homework/create', { 
       student, 
       surahs: surahsRes.rows, 
       elifbaTopics: elifbaTopicsRes.rows,
-      activeHomeworks: activeHwRes.rows
+      activeHomeworks: activeHwRes.rows,
+      completedSurahIds
     });
   } catch (err) {
     console.error(err);

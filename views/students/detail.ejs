@@ -20,6 +20,45 @@
   </div>
 </div>
 
+<!-- Ezberlenen Sureler ve Dualar -->
+<div class="card sec" style="margin-top: 16px;">
+  <div class="card-hdr" style="margin-bottom: 12px;">
+    <h2 class="card-title" style="margin:0; display:flex; align-items:center; gap:8px;">
+      <svg style="width:20px; height:20px; color:#10b981;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Ezberlediği Sureler ve Dualar
+    </h2>
+  </div>
+  <% 
+    var memorizedSurahs = homework.filter(function(h) { 
+      return h.type === 'surah' && h.status === 'completed'; 
+    });
+    var memorizedEzbers = homework.filter(function(h) { 
+      return h.type === 'ezber' && h.status === 'completed'; 
+    });
+  %>
+  <% if (memorizedSurahs.length === 0 && memorizedEzbers.length === 0) { %>
+    <p style="font-size: 13px; color: var(--text3); margin: 0; padding: 12px 0;">Henüz tamamlanmış ezber bulunmamaktadır.</p>
+  <% } else { %>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 8px 0;">
+      <% memorizedSurahs.forEach(function(h) { %>
+        <span class="bdg bdg-ok" style="font-size: 12px; padding: 6px 12px; border-radius: 20px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
+          📖 <%= h.surah_name %> Suresi <%= h.page_number ? '(S. ' + h.page_number + ')' : '' %>
+          <% if (h.translation_option === 'mealiyle') { %>
+            <span style="font-size: 9px; opacity: 0.8; font-weight: 500;">(Mealiyle)</span>
+          <% } else if (h.translation_option === 'sadece_meal') { %>
+            <span style="font-size: 9px; opacity: 0.8; font-weight: 500;">(Sadece Meal)</span>
+          <% } %>
+        </span>
+      <% }); %>
+      <% memorizedEzbers.forEach(function(h) { %>
+        <span class="bdg bdg-ok" style="font-size: 12px; padding: 6px 12px; border-radius: 20px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
+          🌟 <%= h.elifba_topic_text %>
+        </span>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
 <div class="sec">
   <div class="sec-hdr"><h2 class="sec-t">Ödevler</h2><a href="/odev/ogrenci/<%= student.id %>/ekle" class="btn btn-p btn-sm" style="gap:6px">
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Ödev Ver

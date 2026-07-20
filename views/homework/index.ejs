@@ -2,8 +2,32 @@
 <% currentPage = 'odevler'; %>
 
 <div class="hdr">
-  <h1>Öğrenci Ödevleri</h1>
-  <span class="hdr-sub"><%= students.length %> kayıtlı öğrenci</span>
+  <h1>Ödev Takip</h1>
+  <span class="hdr-sub">Aktif öğrenci ödevleri listesi</span>
+</div>
+
+<!-- Consolidated WhatsApp Share Panels -->
+<div class="card" style="margin-bottom: 20px; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0;">
+  <h3 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 8px;">
+    💬 Veli Grubu Ödev Bildirimleri (WhatsApp)
+  </h3>
+  <p style="margin: 0 0 12px 0; font-size: 12px; color: #15803d; line-height: 1.4;">
+    Ödevlerini tamamlamayan (yapmayan) veya bugün yeni ödev verilen öğrencilerin toplu listesini kopyalayabilir ya da WhatsApp veli grubuna doğrudan gönderebilirsiniz.
+  </p>
+  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+    <button id="btnCopyNotDone" onclick="shareHomeworkNotDone(true)" class="btn btn-sm" style="background: #16a34a; border-color: #16a34a; color: white; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
+      Yapmayanları Kopyala
+    </button>
+    <button onclick="shareHomeworkNotDone(false)" class="btn btn-sm" style="background: #25D366; border-color: #25D366; color: white; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
+      Yapmayanları Gruba Gönder
+    </button>
+    <button id="btnCopyNew" onclick="shareHomeworkNew(true)" class="btn btn-sm" style="background: #16a34a; border-color: #16a34a; color: white; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
+      Yeni Ödevleri Kopyala
+    </button>
+    <button onclick="shareHomeworkNew(false)" class="btn btn-sm" style="background: #25D366; border-color: #25D366; color: white; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
+      Yeni Ödevleri Gruba Gönder
+    </button>
+  </div>
 </div>
 
 <div class="card" style="margin-bottom: 20px; padding: 16px;">
@@ -60,7 +84,26 @@
             <% if (s.homeworks && s.homeworks.length > 0) { %>
               <div class="hw-header" style="font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px;">Aktif Ödevler:</div>
               <% s.homeworks.forEach(function(hw) { %>
-                <div class="hw-item" data-type="<%= hw.type %>" data-due-date="<%= hw.due_date ? new Date(hw.due_date).toISOString().split('T')[0] : '' %>" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-bottom: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border)">
+                <% 
+                  var titleText = '';
+                  if (hw.type === 'elifba') {
+                    titleText = 'Elifba: ' + (hw.elifba_topic_text || (hw.lesson_number ? hw.lesson_number + '. ' + hw.elifba_topic_name : ''));
+                  } else if (hw.type === 'ezber') {
+                    titleText = 'Ezber: ' + (hw.elifba_topic_text || '');
+                  } else {
+                    titleText = (hw.surah_name || '') + (hw.page_number ? ' - S. ' + hw.page_number + (hw.page_detail ? ' (' + hw.page_detail + ')' : '') : (hw.start_ayah ? ' (' + hw.start_ayah + '-' + hw.end_ayah + '. ayet)' : ''));
+                    if (hw.translation_option === 'mealiyle') titleText += ' (Mealiyle)';
+                    else if (hw.translation_option === 'sadece_meal') titleText += ' (Sadece Meal)';
+                  }
+                %>
+                <div class="hw-item" 
+                     data-type="<%= hw.type %>" 
+                     data-status="<%= hw.status %>"
+                     data-assigned-date="<%= hw.assigned_date ? new Date(hw.assigned_date).toISOString().split('T')[0] : '' %>"
+                     data-student="<%= s.name %> <%= s.surname %>"
+                     data-title="<%= titleText %>"
+                     data-due-date="<%= hw.due_date ? new Date(hw.due_date).toISOString().split('T')[0] : '' %>" 
+                     style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-bottom: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border)">
                   <span>
                     <% if (hw.type === 'elifba') { %>
                       📖 Elifba: <%= hw.elifba_topic_text || (hw.lesson_number ? hw.lesson_number + '. ' + hw.elifba_topic_name : '') %>
@@ -235,6 +278,126 @@ document.addEventListener('DOMContentLoaded', function() {
     classSelect.appendChild(opt);
   });
 });
+
+function shareHomeworkNotDone(copyOnly) {
+  var list = [];
+  var classFilter = document.getElementById('classFilterSelect').value.trim();
+  
+  document.querySelectorAll('.hw-item').forEach(function(el) {
+    var status = el.getAttribute('data-status');
+    var studentItem = el.closest('.student-item');
+    var studentClass = studentItem ? studentItem.getAttribute('data-class') : '';
+    
+    // If a class filter is active, only include students from that class
+    if (classFilter !== '' && studentClass !== classFilter) {
+      return;
+    }
+    
+    if (status !== 'completed' && status !== 'repeated') {
+      list.push({
+        student: el.getAttribute('data-student'),
+        title: el.getAttribute('data-title'),
+        dueDate: el.getAttribute('data-due-date')
+      });
+    }
+  });
+
+  if (list.length === 0) {
+    alert("Ödevini tamamlamayan öğrenci bulunamadı.");
+    return;
+  }
+
+  var classHeader = classFilter ? "'" + classFilter + "' Sınıfı\n" : "";
+  var text = "Sayın Velilerimiz,\n\n" + classHeader + "Aşağıda ismi yazılı öğrencilerimizin henüz tamamlanmamış/yapmadığı ödevleri bulunmaktadır. Lütfen kontrol ediniz:\n\n";
+  list.forEach(function(item, idx) {
+    var dateStr = item.dueDate ? new Date(item.dueDate).toLocaleDateString('tr-TR') : 'Belirtilmedi';
+    text += (idx + 1) + ". *" + item.student + "*\n   📖 Ödev: " + item.title + "\n   📅 Teslim: " + dateStr + "\n\n";
+  });
+  text += "Bilgilerinize sunarız.\n\nİTKAN Kurs Yönetimi";
+
+  if (copyOnly) {
+    copyToClipboard(text, "btnCopyNotDone");
+  } else {
+    window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(text), "_blank");
+  }
+}
+
+function shareHomeworkNew(copyOnly) {
+  var todayStr = new Date().toISOString().split('T')[0];
+  var list = [];
+  var classFilter = document.getElementById('classFilterSelect').value.trim();
+  
+  document.querySelectorAll('.hw-item').forEach(function(el) {
+    var assignedDate = el.getAttribute('data-assigned-date');
+    var studentItem = el.closest('.student-item');
+    var studentClass = studentItem ? studentItem.getAttribute('data-class') : '';
+    
+    // If a class filter is active, only include students from that class
+    if (classFilter !== '' && studentClass !== classFilter) {
+      return;
+    }
+    
+    if (assignedDate === todayStr) {
+      list.push({
+        student: el.getAttribute('data-student'),
+        title: el.getAttribute('data-title'),
+        dueDate: el.getAttribute('data-due-date')
+      });
+    }
+  });
+
+  if (list.length === 0) {
+    alert("Bugün verilmiş yeni bir ödev bulunamadı.");
+    return;
+  }
+
+  var dateText = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+  var classHeader = classFilter ? "'" + classFilter + "' Sınıfı\n" : "";
+  var text = "Sayın Velilerimiz,\n\n" + classHeader + "*" + dateText + "* tarihinde öğrencilerimize verilen yeni ödevler aşağıdadır. Lütfen takip ediniz:\n\n";
+  list.forEach(function(item, idx) {
+    var dateStr = item.dueDate ? new Date(item.dueDate).toLocaleDateString('tr-TR') : 'Belirtilmedi';
+    text += (idx + 1) + ". *" + item.student + "*\n   📖 Ödev: " + item.title + "\n   📅 Teslim: " + dateStr + "\n\n";
+  });
+  text += "Hayırlı günler dileriz.\n\nİTKAN Kurs Yönetimi";
+
+  if (copyOnly) {
+    copyToClipboard(text, "btnCopyNew");
+  } else {
+    window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(text), "_blank");
+  }
+}
+
+function copyToClipboard(text, btnId) {
+  var btn = document.getElementById(btnId);
+  var origText = btn.innerHTML;
+  
+  function showSuccess() {
+    btn.innerHTML = "Kopyalandı! ✓";
+    btn.style.background = "#059669";
+    setTimeout(function() {
+      btn.innerHTML = origText;
+      btn.style.background = "";
+    }, 2000);
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(showSuccess);
+  } else {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showSuccess();
+    } catch (err) {
+      alert('Kopyalanamadı!');
+    }
+    document.body.removeChild(textArea);
+  }
+}
 </script>
 
 <%- include('../partials/footer') %>
