@@ -138,6 +138,7 @@ async function initialize() {
   await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS page_number VARCHAR(50);');
   await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS page_detail VARCHAR(255);');
   await db.query('ALTER TABLE homework ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES homework(id) ON DELETE SET NULL;');
+  await db.query("ALTER TABLE homework ADD COLUMN IF NOT EXISTS translation_option VARCHAR(50) DEFAULT 'mealsiz';");
 
   const surahCount = await db.query('SELECT COUNT(*) as count FROM surahs');
   if (parseInt(surahCount.rows[0].count, 10) === 0) {

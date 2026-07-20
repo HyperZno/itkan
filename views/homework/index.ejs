@@ -71,10 +71,15 @@
                       📖 Ezber: <%= hw.elifba_topic_text %>
                     <% } else { %>
                       📖 <%= hw.surah_name %><%= hw.page_number ? ' - S. ' + hw.page_number + (hw.page_detail ? ' (' + hw.page_detail + ')' : '') : (hw.start_ayah ? ' (' + hw.start_ayah + '-' + hw.end_ayah + '. ayet)' : '') %>
+                      <% if (hw.translation_option === 'mealiyle') { %>
+                        <span class="bdg bdg-info" style="font-size: 8px; padding: 1px 4px; line-height: 1; display: inline-block; margin-left: 4px;">Mealiyle</span>
+                      <% } else if (hw.translation_option === 'sadece_meal') { %>
+                        <span class="bdg bdg-warn" style="font-size: 8px; padding: 1px 4px; line-height: 1; display: inline-block; margin-left: 4px;">Sadece Meal</span>
+                      <% } %>
                     <% } %>
                   </span>
-                  <span class="bdg <%= hw.status === 'completed' ? 'bdg-ok' : 'bdg-warn' %>" style="padding: 2px 8px; font-size: 10px;">
-                    <%= hw.status === 'completed' ? (hw.type === 'ezber' ? 'Ezberledi' : 'Yaptı') : 'Çalışıyor' %>
+                  <span class="bdg <%= hw.status === 'completed' ? 'bdg-ok' : (hw.status === 'gelmedi' || hw.status === 'yapmadi' ? 'bdg-err' : 'bdg-warn') %>" style="padding: 2px 8px; font-size: 10px;">
+                    <%= hw.status === 'completed' ? (hw.type === 'ezber' ? 'Ezberledi' : 'Yaptı') : (hw.status === 'gelmedi' ? 'Gelmedi' : (hw.status === 'yapmadi' ? 'Yapmadı' : 'Çalışıyor')) %>
                   </span>
                 </div>
               <% }); %>

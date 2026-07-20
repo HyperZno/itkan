@@ -42,6 +42,11 @@
             📖 Ezber: <%= h.elifba_topic_text %>
           <% } else { %>
             📖 <%= h.surah_name %> Suresi
+            <% if (h.translation_option === 'mealiyle') { %>
+              <span class="bdg bdg-info" style="font-size: 9px; padding: 1px 4px; margin-left: 4px; display: inline-block;">Mealiyle</span>
+            <% } else if (h.translation_option === 'sadece_meal') { %>
+              <span class="bdg bdg-warn" style="font-size: 9px; padding: 1px 4px; margin-left: 4px; display: inline-block;">Sadece Meal</span>
+            <% } %>
           <% } %>
         </div>
         <div class="hwc-a">
@@ -59,8 +64,8 @@
           <% } %>
         </div>
       </div>
-      <span class="bdg <%= h.status === 'completed' ? 'bdg-ok' : (h.status === 'repeated' ? 'bdg-gray' : 'bdg-warn') %>">
-        <%= h.status === 'completed' ? (h.type === 'ezber' ? 'Ezberledi' : 'Yaptı') : (h.status === 'repeated' ? 'Tekrar Verildi' : 'Çalışıyor') %>
+      <span class="bdg <%= h.status === 'completed' ? 'bdg-ok' : (h.status === 'repeated' ? 'bdg-gray' : (h.status === 'gelmedi' || h.status === 'yapmadi' ? 'bdg-err' : 'bdg-warn')) %>">
+        <%= h.status === 'completed' ? (h.type === 'ezber' ? 'Ezberledi' : 'Yaptı') : (h.status === 'repeated' ? 'Tekrar Verildi' : (h.status === 'gelmedi' ? 'Gelmedi' : (h.status === 'yapmadi' ? 'Yapmadı' : 'Çalışıyor'))) %>
       </span>
     </div>
     <div class="hwc-m">
@@ -90,6 +95,8 @@
           <button type="submit" name="status" value="completed" class="st-btn <%= h.status === 'completed' ? 's3' : '' %>">
             <%= h.type === 'ezber' ? 'Ezberledi' : 'Yaptı' %>
           </button>
+          <button type="submit" name="status" value="gelmedi" class="st-btn <%= h.status === 'gelmedi' ? 's1' : '' %>" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;">Gelmedi</button>
+          <button type="submit" name="status" value="yapmadi" class="st-btn <%= h.status === 'yapmadi' ? 's1' : '' %>" style="background:#fee2e2; color:#dc2626; border-color:#fca5a5;">Yapmadı</button>
         </form>
         <% if (h.status !== 'repeated') { %>
           <button type="button" class="st-btn" onclick="toggleRepeatForm('<%= h.id %>')" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">Tekrarla</button>

@@ -51,15 +51,28 @@
     <input type="hidden" name="type" id="hwType" value="surah">
 
     <div id="surahSection">
-      <div class="fg"><label class="fl">Sure Seç</label>
-        <input type="text" id="surahSearchInput" class="fi" placeholder="Sure adı yazın veya seçin..." list="surahDatalist" oninput="onSurahInputChange()" autocomplete="off">
-        <input type="hidden" name="surah_id" id="surahIdInput">
-        <datalist id="surahDatalist">
+      <div class="fg">
+        <label class="fl">Sure(ler) Seçin (Birden fazla seçebilirsiniz)</label>
+        <input type="text" id="surahSearchInput" class="fi" placeholder="Sure ara..." oninput="filterSurahCheckboxes()" style="margin-bottom: 8px;" autocomplete="off">
+        <div id="surahCheckboxContainer" style="max-height: 180px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
           <% surahs.forEach(function(s) { %>
-          <option value="<%= s.order_index %>. <%= s.name %>" data-id="<%= s.id %>"></option>
+            <label class="surah-checkbox-label" data-name="<%= s.name.toLowerCase() %>" style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--text); user-select: none;">
+              <input type="checkbox" name="surah_ids" value="<%= s.id %>" style="width: 16px; height: 16px;">
+              <span><%= s.order_index %>. <%= s.name %> Suresi</span>
+            </label>
           <% }); %>
-        </datalist>
+        </div>
       </div>
+
+      <div class="fg">
+        <label class="fl">Meal Durumu</label>
+        <select name="translation_option" class="fi" style="width: 100%;">
+          <option value="mealsiz">Mealsiz (Sadece Arapça Ezber)</option>
+          <option value="mealiyle">Mealiyle (Arapça + Türkçe Meal Ezber)</option>
+          <option value="sadece_meal">Sadece Meali (Sadece Türkçe Meal Ezber)</option>
+        </select>
+      </div>
+
       <div class="flex-2">
         <div class="fg"><label class="fl">Sayfa No <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><input type="text" name="page_number" class="fi" id="pageNumberInput" placeholder="Örn: 77"></div>
         <div class="fg"><label class="fl">Ayetler / Detay <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><input type="text" name="page_detail" class="fi" id="pageDetailInput" placeholder="Örn: 3. ve 4. ayetler"></div>
@@ -133,46 +146,54 @@ function switchTab(type) {
   document.getElementById('elifbaSection').style.display = type === 'elifba' ? 'block' : 'none';
   document.getElementById('ezberSection').style.display = type === 'ezber' ? 'block' : 'none';
   if (type === 'surah') {
-    document.getElementById('surahIdInput').required = true;
     document.getElementById('elifbaTopicInput').required = false;
     document.getElementById('ezberTopicInput').required = false;
     document.getElementById('hwNotes').value = "";
   } else if (type === 'elifba') {
-    document.getElementById('surahIdInput').required = false;
     document.getElementById('elifbaTopicInput').required = true;
     document.getElementById('ezberTopicInput').required = false;
   } else if (type === 'ezber') {
-    document.getElementById('surahIdInput').required = false;
     document.getElementById('elifbaTopicInput').required = false;
     document.getElementById('ezberTopicInput').required = true;
   }
 }
 
-function onSurahInputChange() {
-  var input = document.getElementById('surahSearchInput');
-  var val = input.value.trim().toLowerCase();
-  var opts = document.getElementById('surahDatalist').options;
-  var idInput = document.getElementById('surahIdInput');
+function turkishNormalize(str) {
+  if (!str) return '';
+  return str.toLowerCase()
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/i̇/g, 'i');
+}
+
+function filterSurahCheckboxes() {
+  var q = turkishNormalize(document.getElementById('surahSearchInput').value.trim());
+  var labels = document.querySelectorAll('.surah-checkbox-label');
   
-  idInput.value = "";
-  if (!val) return;
-  
-  for (var i = 0; i < opts.length; i++) {
-    var optValue = opts[i].value;
-    var optId = opts[i].getAttribute('data-id');
-    
-    var cleanOptValue = optValue.toLowerCase();
-    var nameOnly = optValue.substring(optValue.indexOf(' ') + 1).toLowerCase();
-    
-    if (cleanOptValue === val || nameOnly === val) {
-      idInput.value = optId;
-      if (nameOnly === val) {
-        input.value = optValue;
-      }
-      break;
+  labels.forEach(function(label) {
+    var name = turkishNormalize(label.getAttribute('data-name') || '');
+    if (name.indexOf(q) > -1) {
+      label.style.display = 'flex';
+    } else {
+      label.style.display = 'none';
+    }
+  });
+}
+
+document.getElementById('homeworkForm').addEventListener('submit', function(e) {
+  var type = document.getElementById('hwType').value;
+  if (type === 'surah') {
+    var checked = document.querySelectorAll('input[name="surah_ids"]:checked');
+    if (checked.length === 0) {
+      e.preventDefault();
+      alert('Lütfen en az bir sure seçin.');
     }
   }
-}
+});
 </script>
 
 <%- include('../partials/footer') %>
