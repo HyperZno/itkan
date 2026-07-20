@@ -103,7 +103,7 @@ router.post('/yoklama/sinif/:id/tarih/:date', authenticate, async (req, res) => 
       await db.query(query, values);
     }
 
-    res.redirect(`/yoklama/seans/${session.id}`);
+    res.redirect(`/yoklama/detay/${session.id}`);
   } catch (err) {
     console.error(err);
     res.status(500).send('Sistem hatası');
