@@ -114,7 +114,7 @@
   <% } else { %>
   <div style="margin: 0 -16px;" id="allStudentsContainer">
     <% students.forEach(function(s, i) { %>
-    <div class="lst-it all-student-item" data-search="<%= s.name.toLowerCase() %> <%= s.surname.toLowerCase() %> <%= s.class_name.toLowerCase() %> <%= s.parent_name ? s.parent_name.toLowerCase() : '' %> <%= s.phone || '' %> <%= s.tc_kimlik || '' %>" style="padding: 16px; cursor: default; border-bottom: 1px solid rgba(226, 232, 240, 0.5)">
+    <div class="lst-it all-student-item" data-search="<%= s.name %> <%= s.surname %> <%= s.class_name %> <%= s.parent_name || '' %> <%= s.phone || '' %> <%= s.tc_kimlik || '' %>" style="padding: 16px; cursor: default; border-bottom: 1px solid rgba(226, 232, 240, 0.5)">
       <div class="lst-av" style="width:40px; height:40px; font-size:14px;"><%= s.name.charAt(0).toUpperCase() %></div>
       <div class="lst-c">
         <div class="lst-t"><%= s.name %> <%= s.surname %></div>
@@ -136,9 +136,11 @@
       <div class="lst-r">
         <a href="/ogrenci/<%= s.id %>" class="btn btn-xs btn-s">Ödevler</a>
         <a href="/ogrenci/<%= s.id %>/duzenle" class="btn btn-xs btn-s">Düzenle</a>
+        <% if (currentUser && currentUser.role === 'super_admin') { %>
         <form method="POST" action="/ogrenci/<%= s.id %>/sil" style="margin: 0;">
           <button type="submit" class="btn btn-xs btn-err">Sil</button>
         </form>
+        <% } %>
       </div>
     </div>
     <% }); %>
@@ -157,11 +159,23 @@ function toggleAddStudentForm() {
   }
 }
 
+function turkishNormalize(str) {
+  if (!str) return '';
+  return str.toLocaleLowerCase('tr-TR')
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/i̇/g, 'i');
+}
+
 function filterAllStudents() {
-  var input = document.getElementById('allStudentSearchInput').value.toLowerCase().trim();
+  var input = turkishNormalize(document.getElementById('allStudentSearchInput').value.trim());
   var items = document.querySelectorAll('.all-student-item');
   items.forEach(function(item) {
-    var searchData = item.dataset.search;
+    var searchData = turkishNormalize(item.getAttribute('data-search') || '');
     if (searchData.indexOf(input) > -1) {
       item.style.display = 'flex';
     } else {

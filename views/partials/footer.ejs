@@ -25,7 +25,7 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
     <p style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 24px; font-family: 'Inter', sans-serif;">
       Yeni ödev sistemi (sayfa/detay girişi), arama yapılabilir sure seçimi, günlük yoklama hatırlatıcı bildirimleri ve konum izinlerinin çalışabilmesi için lütfen uygulamanın güncel sürümünü (v2) indirin.
     </p>
-    <a href="/itkan-v2.apk" download style="display: flex; justify-content: center; align-items: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 12px; background: #0f172a; color: #ffffff; transition: background 0.2s; margin-bottom: 12px;">
+    <a href="/İTKAN.apk" download style="display: flex; justify-content: center; align-items: center; text-decoration: none; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 12px; background: #0f172a; color: #ffffff; transition: background 0.2s; margin-bottom: 12px;">
       Güncellemeyi İndir (APK)
     </a>
     <button onclick="copyApkLink()" style="display: flex; width: 100%; justify-content: center; align-items: center; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; padding: 10px; font-size: 13px; font-weight: 500; border-radius: 12px; cursor: pointer; transition: all 0.2s; margin-bottom: 16px;">
@@ -40,7 +40,7 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 <script>
 function copyApkLink() {
   var dummy = document.createElement('input');
-  var text = window.location.origin + '/itkan-v2.apk';
+  var text = window.location.origin + '/İTKAN.apk';
   document.body.appendChild(dummy);
   dummy.value = text;
   dummy.select();

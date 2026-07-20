@@ -98,7 +98,7 @@
   <% } else { %>
   <div style="margin:0 -4px" id="studentsContainer">
     <% students.forEach(function(s, i) { %>
-    <div class="lst-it student-item" data-name="<%= s.name.toLowerCase() %> <%= s.surname.toLowerCase() %>" style="padding:12px 4px;cursor:default;border-bottom:1px solid rgba(226, 232, 240, 0.5)">
+    <div class="lst-it student-item" data-name="<%= s.name %> <%= s.surname %>" style="padding:12px 4px;cursor:default;border-bottom:1px solid rgba(226, 232, 240, 0.5)">
       <div class="lst-av" style="width:36px;height:36px;font-size:13px;background:#f3f4f6;color:var(--text2)"><%= s.name.charAt(0) %></div>
       <div class="lst-c">
         <div class="lst-t" style="font-size:13px"><%= s.name %> <%= s.surname %></div>
@@ -110,9 +110,11 @@
       </div>
       <div class="lst-r">
         <a href="/ogrenci/<%= s.id %>" class="btn btn-xs btn-s">Detay</a>
+        <% if (currentUser && currentUser.role === 'super_admin') { %>
         <form method="POST" action="/ogrenci/<%= s.id %>/sil" style="margin:0">
           <button type="submit" class="btn btn-xs btn-err">Sil</button>
         </form>
+        <% } %>
       </div>
     </div>
     <% }); %>
@@ -148,11 +150,23 @@ function toggleAddStudentForm() {
   }
 }
 
+function turkishNormalize(str) {
+  if (!str) return '';
+  return str.toLocaleLowerCase('tr-TR')
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/i̇/g, 'i');
+}
+
 function filterStudents() {
-  var input = document.getElementById('studentSearchInput').value.toLowerCase();
+  var input = turkishNormalize(document.getElementById('studentSearchInput').value.trim());
   var items = document.querySelectorAll('.student-item');
   items.forEach(function(item) {
-    var name = item.dataset.name;
+    var name = turkishNormalize(item.getAttribute('data-name') || '');
     if (name.indexOf(input) > -1) {
       item.style.display = 'flex';
     } else {

@@ -10,6 +10,7 @@
   <div style="display:flex;gap:8px;margin-bottom:20px">
     <button type="button" class="btn btn-p btn-sm" id="tabSurah" onclick="switchTab('surah')" style="flex:1">Sure</button>
     <button type="button" class="btn btn-s btn-sm" id="tabElifba" onclick="switchTab('elifba')" style="flex:1">Elifba</button>
+    <button type="button" class="btn btn-s btn-sm" id="tabEzber" onclick="switchTab('ezber')" style="flex:1">Ezber</button>
   </div>
 
   <form method="POST" action="/odev/ogrenci/<%= student.id %>/ekle" id="homeworkForm">
@@ -37,6 +38,51 @@
       </div>
     </div>
 
+    <div id="ezberSection" style="display:none">
+      <div class="fg"><label class="fl">Ezberlenecek Sure / Dua / Parça</label>
+        <input type="text" name="ezber_topic_text" class="fi" id="ezberTopicInput" placeholder="Sure, dua, ezan veya kamet yazın ya da seçin..." list="ezberDatalist" autocomplete="off">
+        <datalist id="ezberDatalist">
+          <option value="Fâtiha Suresi"></option>
+          <option value="Fil Suresi"></option>
+          <option value="Kureyş Suresi"></option>
+          <option value="Mâûn Suresi"></option>
+          <option value="Kevser Suresi"></option>
+          <option value="Kâfirûn Suresi"></option>
+          <option value="Nasr Suresi"></option>
+          <option value="Tebbet Suresi"></option>
+          <option value="İhlâs Suresi"></option>
+          <option value="Felak Suresi"></option>
+          <option value="Nâs Suresi"></option>
+          <option value="Duhâ Suresi"></option>
+          <option value="İnşirâh Suresi"></option>
+          <option value="Tîn Suresi"></option>
+          <option value="Alak Suresi"></option>
+          <option value="Kadr Suresi"></option>
+          <option value="Beyyine Suresi"></option>
+          <option value="Zilzâl Suresi"></option>
+          <option value="Âdiyât Suresi"></option>
+          <option value="Kâria Suresi"></option>
+          <option value="Tekâsür Suresi"></option>
+          <option value="Asr Suresi"></option>
+          <option value="Hümeze Suresi"></option>
+          <option value="Sübhaneke"></option>
+          <option value="Ettehıyyatü"></option>
+          <option value="Allahümme Salli"></option>
+          <option value="Allahümme Barik"></option>
+          <option value="Rabbena Atina"></option>
+          <option value="Rabbenağfirli"></option>
+          <option value="Kunut Duaları (Kunut 1)"></option>
+          <option value="Kunut Duaları (Kunut 2)"></option>
+          <option value="Ayet'el Kürsi"></option>
+          <option value="Amenerrasulü"></option>
+          <option value="Hüvallahüllezi"></option>
+          <option value="Ezan"></option>
+          <option value="Kamet"></option>
+          <option value="Tesbihat"></option>
+        </datalist>
+      </div>
+    </div>
+
     <div class="fg"><label class="fl">Teslim Tarihi <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><input type="date" name="due_date" class="fi"></div>
     <div class="fg"><label class="fl">Not <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label><textarea name="notes" id="hwNotes" class="fta" rows="2" placeholder="Ödevle ilgili not..."></textarea></div>
     <button type="submit" class="btn btn-ok btn-blk">Ödevi Ver</button>
@@ -48,15 +94,23 @@ function switchTab(type) {
   document.getElementById('hwType').value = type;
   document.getElementById('tabSurah').className = type === 'surah' ? 'btn btn-p btn-sm' : 'btn btn-s btn-sm';
   document.getElementById('tabElifba').className = type === 'elifba' ? 'btn btn-p btn-sm' : 'btn btn-s btn-sm';
+  document.getElementById('tabEzber').className = type === 'ezber' ? 'btn btn-p btn-sm' : 'btn btn-s btn-sm';
   document.getElementById('surahSection').style.display = type === 'surah' ? 'block' : 'none';
   document.getElementById('elifbaSection').style.display = type === 'elifba' ? 'block' : 'none';
+  document.getElementById('ezberSection').style.display = type === 'ezber' ? 'block' : 'none';
   if (type === 'surah') {
     document.getElementById('surahIdInput').required = true;
     document.getElementById('elifbaTopicInput').required = false;
+    document.getElementById('ezberTopicInput').required = false;
     document.getElementById('hwNotes').value = "";
-  } else {
+  } else if (type === 'elifba') {
     document.getElementById('surahIdInput').required = false;
     document.getElementById('elifbaTopicInput').required = true;
+    document.getElementById('ezberTopicInput').required = false;
+  } else if (type === 'ezber') {
+    document.getElementById('surahIdInput').required = false;
+    document.getElementById('elifbaTopicInput').required = false;
+    document.getElementById('ezberTopicInput').required = true;
   }
 }
 

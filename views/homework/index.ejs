@@ -31,7 +31,7 @@
     </div>
   <% } else { %>
     <% students.forEach(function(s) { %>
-      <div class="card hw-st-card student-item" data-name="<%= s.name.toLowerCase() %> <%= s.surname.toLowerCase() %>" data-class="<%= s.class_name.toLowerCase() %>">
+      <div class="card hw-st-card student-item" data-name="<%= s.name %> <%= s.surname %>" data-class="<%= s.class_name %>">
         <div class="hw-st-av">
           <%= s.name.charAt(0).toUpperCase() %>
         </div>
@@ -50,6 +50,8 @@
                       <% if (hw.elifba_url) { %>
                         <a href="<%= hw.elifba_url %>" target="_blank" class="sec-lk" style="font-size: 10px; font-weight: 700; text-decoration: underline; margin-left: 6px;">Çalış ➔</a>
                       <% } %>
+                    <% } else if (hw.type === 'ezber') { %>
+                      📖 Ezber: <%= hw.elifba_topic_text %>
                     <% } else { %>
                       📖 <%= hw.surah_name %><%= hw.page_number ? ' - S. ' + hw.page_number + (hw.page_detail ? ' (' + hw.page_detail + ')' : '') : (hw.start_ayah ? ' (' + hw.start_ayah + '-' + hw.end_ayah + '. ayet)' : '') %>
                     <% } %>
@@ -91,8 +93,20 @@ function toggleTodayFilter() {
   filterStudents();
 }
 
+function turkishNormalize(str) {
+  if (!str) return '';
+  return str.toLocaleLowerCase('tr-TR')
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/i̇/g, 'i');
+}
+
 function filterStudents() {
-  var q = document.getElementById('studentSearch').value.toLowerCase().trim();
+  var q = turkishNormalize(document.getElementById('studentSearch').value.trim());
   var items = document.querySelectorAll('.student-item');
   
   var localToday = new Date();
@@ -101,8 +115,8 @@ function filterStudents() {
   var todayStr = localToday.toISOString().split('T')[0];
 
   items.forEach(function(item) {
-    var name = item.dataset.name;
-    var cls = item.dataset.class;
+    var name = turkishNormalize(item.getAttribute('data-name') || '');
+    var cls = turkishNormalize(item.getAttribute('data-class') || '');
     
     var matchesSearch = name.includes(q) || cls.includes(q);
     var hwItems = item.querySelectorAll('.hw-item');

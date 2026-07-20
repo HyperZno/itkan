@@ -69,7 +69,7 @@ router.get('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
 });
 
 router.post('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
-  const { type, surah_id, elifba_topic_text, page_number, page_detail, due_date, notes } = req.body;
+  const { type, surah_id, elifba_topic_text, ezber_topic_text, page_number, page_detail, due_date, notes } = req.body;
   const today = new Date().toISOString().split('T')[0];
 
   try {
@@ -88,6 +88,20 @@ router.post('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
         surah_id, 
         page_number || '', 
         page_detail || '', 
+        req.user.id, 
+        today, 
+        due_date || null, 
+        notes || ''
+      ]);
+    } else if (type === 'ezber') {
+      const topic = ezber_topic_text || elifba_topic_text;
+      if (!topic) return res.status(400).send('Ezber konusu seçilmesi veya yazılması gerekli');
+      await db.query(`
+        INSERT INTO homework (student_id, type, elifba_topic_text, assigned_by, assigned_date, due_date, notes, status)
+        VALUES ($1, 'ezber', $2, $3, $4, $5, $6, 'not_started')
+      `, [
+        req.params.studentId, 
+        topic, 
         req.user.id, 
         today, 
         due_date || null, 

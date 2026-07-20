@@ -231,6 +231,10 @@ router.post('/ogrenci/:id/duzenle', authenticate, async (req, res) => {
 
 router.post('/ogrenci/:id/sil', authenticate, async (req, res) => {
   try {
+    if (req.user.role !== 'super_admin') {
+      return res.status(403).send('Bu işlem için yetkiniz yok. Sadece yöneticiler öğrenci silebilir.');
+    }
+
     const studentRes = await db.query('SELECT class_id FROM students WHERE id = $1', [req.params.id]);
     const student = studentRes.rows[0];
     if (!student) return res.status(404).send('Ogrenci bulunamadi');
