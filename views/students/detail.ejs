@@ -124,19 +124,30 @@
         🔄 Bu ödev, yapmadığı bir önceki ödevin tekrarıdır.
       </div>
     <% } %>
+    <% if ((h.status === 'gelmedi' || h.status === 'yapmadi') && h.due_date) { %>
+      <div style="font-size: 11px; color: #dc2626; margin-top: 6px; font-weight: 600; background: #fef2f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #fecaca; display: inline-block; width: fit-content;">
+        ⚠️ Bu ödev yapılmadığı/öğrenci gelmediği için <%= new Date(h.due_date).toLocaleDateString('tr-TR') %> tarihine ertelenmiştir.
+      </div>
+    <% } %>
 
     <% if (h.notes) { %><div class="hwc-n"><%= h.notes %></div><% } %>
     
     <div class="hwc-b" style="display:flex; flex-direction:column; gap:8px;">
       <div style="display:flex; gap:4px; flex-wrap:wrap; width:100%; align-items:center;">
-        <form method="POST" action="/odev/<%= h.id %>/guncelle" style="display:flex; gap:4px; flex-wrap:wrap; margin:0;">
-          <button type="submit" name="status" value="in_progress" class="st-btn <%= h.status === 'in_progress' ? 's2' : '' %>">Çalışıyor</button>
-          <button type="submit" name="status" value="completed" class="st-btn <%= h.status === 'completed' ? 's3' : '' %>">
-            <%= h.type === 'ezber' ? 'Ezberledi' : 'Yaptı' %>
-          </button>
-          <button type="submit" name="status" value="gelmedi" class="st-btn <%= h.status === 'gelmedi' ? 's1' : '' %>" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;">Gelmedi</button>
-          <button type="submit" name="status" value="yapmadi" class="st-btn <%= h.status === 'yapmadi' ? 's1' : '' %>" style="background:#fee2e2; color:#dc2626; border-color:#fca5a5;">Yapmadı</button>
-        </form>
+        <div style="display:flex; gap:4px; flex-wrap:wrap; margin:0;">
+          <form method="POST" action="/odev/<%= h.id %>/guncelle" style="display:inline; margin:0;">
+            <input type="hidden" name="status" value="in_progress">
+            <button type="submit" class="st-btn <%= h.status === 'in_progress' ? 's2' : '' %>">Çalışıyor</button>
+          </form>
+          <form method="POST" action="/odev/<%= h.id %>/guncelle" style="display:inline; margin:0;">
+            <input type="hidden" name="status" value="completed">
+            <button type="submit" class="st-btn <%= h.status === 'completed' ? 's3' : '' %>">
+              <%= h.type === 'ezber' ? 'Ezberledi' : 'Yaptı' %>
+            </button>
+          </form>
+          <button type="button" class="st-btn <%= h.status === 'gelmedi' ? 's1' : '' %>" onclick="showDelayForm('<%= h.id %>', 'gelmedi')" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;">Gelmedi</button>
+          <button type="button" class="st-btn <%= h.status === 'yapmadi' ? 's1' : '' %>" onclick="showDelayForm('<%= h.id %>', 'yapmadi')" style="background:#fee2e2; color:#dc2626; border-color:#fca5a5;">Yapmadı</button>
+        </div>
         <% if (h.status !== 'repeated') { %>
           <button type="button" class="st-btn" onclick="toggleRepeatForm('<%= h.id %>')" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">Tekrarla</button>
         <% } %>
@@ -162,6 +173,21 @@
           </div>
         </form>
       </div>
+
+      <!-- Inline Delay Form (Gelmedi / Yapmadı) -->
+      <div id="delayForm_<%= h.id %>" style="display:none; border-top:1px dashed #fca5a5; padding-top:8px; margin-top:4px;">
+        <form method="POST" action="/odev/<%= h.id %>/guncelle" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0;">
+          <input type="hidden" name="status" id="delayStatus_<%= h.id %>" value="">
+          <div class="fg" style="margin:0; flex:1; min-width:120px;">
+            <label class="fl" style="font-size:10px; color:#c53030;" id="delayLabel_<%= h.id %>">Yeni Teslim Tarihi</label>
+            <input type="date" name="new_due_date" class="fi" style="padding:4px 8px; font-size:12px; height:32px;" required>
+          </div>
+          <div style="display:flex; gap:4px; margin-top:14px;">
+            <button type="submit" class="btn btn-sm" style="background:#e53e3e; border-color:#e53e3e; color:white; padding:4px 10px; font-size:11px;">Kaydet</button>
+            <button type="button" class="btn btn-s btn-sm" style="padding:4px 10px; font-size:11px;" onclick="closeDelayForm('<%= h.id %>')">Vazgeç</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
   <% }); %>
@@ -170,12 +196,38 @@
 
 <script>
 function toggleRepeatForm(id) {
+  // Hide delay form first
+  closeDelayForm(id);
+
   var formDiv = document.getElementById('repeatForm_' + id);
   if (formDiv.style.display === 'none') {
     formDiv.style.display = 'block';
   } else {
     formDiv.style.display = 'none';
   }
+}
+
+function showDelayForm(id, status) {
+  // Hide repeat form first
+  var repeatForm = document.getElementById('repeatForm_' + id);
+  if (repeatForm) repeatForm.style.display = 'none';
+
+  var formDiv = document.getElementById('delayForm_' + id);
+  var statusInput = document.getElementById('delayStatus_' + id);
+  var label = document.getElementById('delayLabel_' + id);
+
+  statusInput.value = status;
+  if (status === 'gelmedi') {
+    label.innerText = "Gelmedi: Yeni Teslim Tarihi";
+  } else {
+    label.innerText = "Yapmadı: Yeni Teslim Tarihi";
+  }
+  formDiv.style.display = 'block';
+}
+
+function closeDelayForm(id) {
+  var formDiv = document.getElementById('delayForm_' + id);
+  if (formDiv) formDiv.style.display = 'none';
 }
 </script>
 

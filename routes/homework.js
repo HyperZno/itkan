@@ -189,7 +189,7 @@ router.post('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
 });
 
 router.post('/odev/:id/guncelle', authenticate, async (req, res) => {
-  const { status } = req.body;
+  const { status, new_due_date } = req.body;
   
   try {
     const homeworkRes = await db.query(`
@@ -202,7 +202,14 @@ router.post('/odev/:id/guncelle', authenticate, async (req, res) => {
     const homework = homeworkRes.rows[0];
     if (!homework) return res.status(404).send('Odev bulunamadi');
 
-    await db.query('UPDATE homework SET status = $1, checked_by = $2, checked_date = NOW() WHERE id = $3', [status, req.user.id, req.params.id]);
+    let logMessage = '';
+    if ((status === 'gelmedi' || status === 'yapmadi') && new_due_date) {
+      await db.query('UPDATE homework SET status = $1, due_date = $2, checked_by = $3, checked_date = NOW() WHERE id = $4', [status, new_due_date, req.user.id, req.params.id]);
+      var formattedDate = new Date(new_due_date).toLocaleDateString('tr-TR');
+      logMessage = ` ve yeni teslim tarihini ${formattedDate} olarak erteledi`;
+    } else {
+      await db.query('UPDATE homework SET status = $1, checked_by = $2, checked_date = NOW() WHERE id = $3', [status, req.user.id, req.params.id]);
+    }
 
     let statusText = status;
     if (status === 'completed') statusText = homework.type === 'ezber' ? 'Ezberledi' : 'Yaptı';
@@ -212,7 +219,7 @@ router.post('/odev/:id/guncelle', authenticate, async (req, res) => {
 
     let hwDetail = homework.type === 'surah' ? `${homework.surah_name} Suresi` : homework.elifba_topic_text;
 
-    await logActivity(req.user.id, 'homework_update', `${req.user.display_name} öğretmeni, ${homework.student_name} ${homework.student_surname} isimli öğrencinin ${hwDetail} ödevinin durumunu "${statusText}" olarak güncelledi.`);
+    await logActivity(req.user.id, 'homework_update', `${req.user.display_name} öğretmeni, ${homework.student_name} ${homework.student_surname} isimli öğrencinin ${hwDetail} ödevinin durumunu "${statusText}" olarak güncelledi${logMessage}.`);
 
     res.redirect(`/ogrenci/${homework.student_id}`);
   } catch (err) {
