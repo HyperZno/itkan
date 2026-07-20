@@ -69,6 +69,13 @@ router.get('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
     `, [req.params.studentId]);
     const completedSurahIds = completedSuraRes.rows.map(r => r.surah_id);
 
+    const completedEzberRes = await db.query(`
+      SELECT DISTINCT elifba_topic_text 
+      FROM homework 
+      WHERE student_id = $1 AND type = 'ezber' AND status = 'completed' AND elifba_topic_text IS NOT NULL
+    `, [req.params.studentId]);
+    const completedEzbers = completedEzberRes.rows.map(r => r.elifba_topic_text);
+
     const surahsRes = await db.query('SELECT * FROM surahs ORDER BY order_index ASC');
     const elifbaTopicsRes = await db.query('SELECT * FROM elifba_topics ORDER BY lesson_number ASC');
     res.render('homework/create', { 
@@ -76,7 +83,8 @@ router.get('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
       surahs: surahsRes.rows, 
       elifbaTopics: elifbaTopicsRes.rows,
       activeHomeworks: activeHwRes.rows,
-      completedSurahIds
+      completedSurahIds,
+      completedEzbers
     });
   } catch (err) {
     console.error(err);
@@ -85,20 +93,8 @@ router.get('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
 });
 
 router.post('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
-  const { type, elifba_topic_text, ezber_topic_text, page_number, page_detail, due_date, notes, translation_option } = req.body;
+  const { type, elifba_topic_text, page_number, page_detail, due_date, notes, translation_option, surah_id } = req.body;
   const today = new Date().toISOString().split('T')[0];
-
-  let surahIds = [];
-  if (req.body.surah_ids) {
-    if (Array.isArray(req.body.surah_ids)) {
-      surahIds = req.body.surah_ids;
-    } else {
-      surahIds = [req.body.surah_ids];
-    }
-  }
-  if (req.body.surah_id && surahIds.length === 0) {
-    surahIds = [req.body.surah_id];
-  }
 
   try {
     const studentRes = await db.query('SELECT s.name, s.surname, c.name as class_name FROM students s JOIN classes c ON s.class_id = c.id WHERE s.id = $1', [req.params.studentId]);
@@ -109,21 +105,51 @@ router.post('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
     const translationVal = translation_option || 'mealsiz';
 
     if (type === 'surah') {
-      if (surahIds.length === 0) return res.status(400).send('Sure seçimi gerekli');
+      if (!surah_id) return res.status(400).send('Sure seçimi gerekli');
       
-      for (const sId of surahIds) {
-        const surahRes = await db.query('SELECT * FROM surahs WHERE id = $1', [sId]);
-        const surah = surahRes.rows[0];
-        if (!surah) continue;
+      const surahRes = await db.query('SELECT * FROM surahs WHERE id = $1', [surah_id]);
+      const surah = surahRes.rows[0];
+      if (!surah) return res.status(404).send('Sure bulunamadı');
 
+      await db.query(`
+        INSERT INTO homework (student_id, type, surah_id, page_number, page_detail, assigned_by, assigned_date, due_date, notes, status, translation_option)
+        VALUES ($1, 'surah', $2, $3, $4, $5, $6, $7, $8, 'in_progress', 'mealsiz')
+      `, [
+        req.params.studentId, 
+        surah_id, 
+        page_number || '', 
+        page_detail || '', 
+        req.user.id, 
+        today, 
+        due_date || null, 
+        notes || ''
+      ]);
+
+      const detailText = page_number ? `Sayfa: ${page_number}${page_detail ? ' (' + page_detail + ')' : ''}` : 'Tümü';
+      await logActivity(req.user.id, 'homework_assign', `${req.user.display_name} öğretmeni, ${studentName} isimli öğrenciye yeni bir Sure ödevi verdi: ${surah.name} Suresi (${detailText}) [Sınıf: ${student.class_name}]`);
+    
+    } else if (type === 'ezber') {
+      let topics = [];
+      if (req.body.ezber_topics) {
+        if (Array.isArray(req.body.ezber_topics)) {
+          topics = req.body.ezber_topics;
+        } else {
+          topics = [req.body.ezber_topics];
+        }
+      }
+      if (req.body.ezber_topic_text && topics.length === 0) {
+        topics = [req.body.ezber_topic_text];
+      }
+
+      if (topics.length === 0) return res.status(400).send('Ezber konusu seçilmesi gerekli');
+
+      for (const topic of topics) {
         await db.query(`
-          INSERT INTO homework (student_id, type, surah_id, page_number, page_detail, assigned_by, assigned_date, due_date, notes, status, translation_option)
-          VALUES ($1, 'surah', $2, $3, $4, $5, $6, $7, $8, 'in_progress', $9)
+          INSERT INTO homework (student_id, type, elifba_topic_text, assigned_by, assigned_date, due_date, notes, status, translation_option)
+          VALUES ($1, 'ezber', $2, $3, $4, $5, $6, 'in_progress', $7)
         `, [
           req.params.studentId, 
-          sId, 
-          page_number || '', 
-          page_detail || '', 
+          topic, 
           req.user.id, 
           today, 
           due_date || null, 
@@ -135,25 +161,9 @@ router.post('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
         if (translationVal === 'mealiyle') translationText = ' (Mealiyle)';
         else if (translationVal === 'sadece_meal') translationText = ' (Sadece Meali)';
 
-        const detailText = page_number ? `Sayfa: ${page_number}${page_detail ? ' (' + page_detail + ')' : ''}` : 'Tümü';
-        await logActivity(req.user.id, 'homework_assign', `${req.user.display_name} öğretmeni, ${studentName} isimli öğrenciye yeni bir Sure ödevi verdi: ${surah.name} Suresi (${detailText})${translationText} [Sınıf: ${student.class_name}]`);
+        await logActivity(req.user.id, 'homework_assign', `${req.user.display_name} öğretmeni, ${studentName} isimli öğrenciye yeni bir Ezber ödevi verdi: ${topic}${translationText} [Sınıf: ${student.class_name}]`);
       }
-    } else if (type === 'ezber') {
-      const topic = ezber_topic_text || elifba_topic_text;
-      if (!topic) return res.status(400).send('Ezber konusu seçilmesi veya yazılması gerekli');
-      await db.query(`
-        INSERT INTO homework (student_id, type, elifba_topic_text, assigned_by, assigned_date, due_date, notes, status)
-        VALUES ($1, 'ezber', $2, $3, $4, $5, $6, 'in_progress')
-      `, [
-        req.params.studentId, 
-        topic, 
-        req.user.id, 
-        today, 
-        due_date || null, 
-        notes || ''
-      ]);
 
-      await logActivity(req.user.id, 'homework_assign', `${req.user.display_name} öğretmeni, ${studentName} isimli öğrenciye yeni bir Ezber ödevi verdi: ${topic} [Sınıf: ${student.class_name}]`);
     } else {
       if (!elifba_topic_text) return res.status(400).send('Elifba konusu yazılması gerekli');
       await db.query(`

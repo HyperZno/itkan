@@ -52,29 +52,15 @@
 
     <div id="surahSection">
       <div class="fg">
-        <label class="fl">Sure(ler) Seçin (Birden fazla seçebilirsiniz)</label>
-        <input type="text" id="surahSearchInput" class="fi" placeholder="Sure ara... (Enter'a basarak seçime ekleyebilirsiniz)" oninput="filterSurahCheckboxes()" style="margin-bottom: 8px;" autocomplete="off">
-        <div id="surahCheckboxContainer" style="max-height: 180px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
+        <label class="fl">Sure Seç</label>
+        <input type="text" id="surahSearchInput" class="fi" placeholder="Sure adı yazın veya seçin..." list="surahDatalist" oninput="onSurahInputChange()" autocomplete="off">
+        <input type="hidden" name="surah_id" id="surahIdInput" required>
+        <datalist id="surahDatalist">
           <% surahs.forEach(function(s) { %>
             <% var isCompleted = typeof completedSurahIds !== 'undefined' && completedSurahIds.includes(s.id); %>
-            <label class="surah-checkbox-label" data-name="<%= s.name.toLowerCase() %>" style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--text); user-select: none; <%= isCompleted ? 'color: #059669; font-weight: 600;' : '' %>">
-              <input type="checkbox" name="surah_ids" value="<%= s.id %>" class="surah-chk" style="width: 16px; height: 16px;">
-              <span>
-                <%= s.order_index %>. <%= s.name %> Suresi
-                <%= isCompleted ? ' (✓ Ezberledi)' : '' %>
-              </span>
-            </label>
+            <option value="<%= s.order_index %>. <%= s.name %> Suresi<%= isCompleted ? ' (✓ Ezberledi)' : '' %>" data-id="<%= s.id %>"></option>
           <% }); %>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label class="fl">Meal Durumu</label>
-        <select name="translation_option" class="fi" style="width: 100%;">
-          <option value="mealsiz">Mealsiz (Sadece Arapça Ezber)</option>
-          <option value="mealiyle">Mealiyle (Arapça + Türkçe Meal Ezber)</option>
-          <option value="sadece_meal">Sadece Meali (Sadece Türkçe Meal Ezber)</option>
-        </select>
+        </datalist>
       </div>
 
       <div class="flex-2">
@@ -90,47 +76,44 @@
     </div>
 
     <div id="ezberSection" style="display:none">
-      <div class="fg"><label class="fl">Ezberlenecek Sure / Dua / Parça</label>
-        <input type="text" name="ezber_topic_text" class="fi" id="ezberTopicInput" placeholder="Sure, dua, ezan veya kamet yazın ya da seçin..." list="ezberDatalist" autocomplete="off">
-        <datalist id="ezberDatalist">
-          <option value="Fâtiha Suresi"></option>
-          <option value="Fil Suresi"></option>
-          <option value="Kureyş Suresi"></option>
-          <option value="Mâûn Suresi"></option>
-          <option value="Kevser Suresi"></option>
-          <option value="Kâfirûn Suresi"></option>
-          <option value="Nasr Suresi"></option>
-          <option value="Tebbet Suresi"></option>
-          <option value="İhlâs Suresi"></option>
-          <option value="Felak Suresi"></option>
-          <option value="Nâs Suresi"></option>
-          <option value="Duhâ Suresi"></option>
-          <option value="İnşirâh Suresi"></option>
-          <option value="Tîn Suresi"></option>
-          <option value="Alak Suresi"></option>
-          <option value="Kadr Suresi"></option>
-          <option value="Beyyine Suresi"></option>
-          <option value="Zilzâl Suresi"></option>
-          <option value="Âdiyât Suresi"></option>
-          <option value="Kâria Suresi"></option>
-          <option value="Tekâsür Suresi"></option>
-          <option value="Asr Suresi"></option>
-          <option value="Hümeze Suresi"></option>
-          <option value="Sübhaneke"></option>
-          <option value="Ettehıyyatü"></option>
-          <option value="Allahümme Salli"></option>
-          <option value="Allahümme Barik"></option>
-          <option value="Rabbena Atina"></option>
-          <option value="Rabbenağfirli"></option>
-          <option value="Kunut Duaları (Kunut 1)"></option>
-          <option value="Kunut Duaları (Kunut 2)"></option>
-          <option value="Ayet'el Kürsi"></option>
-          <option value="Amenerrasulü"></option>
-          <option value="Hüvallahüllezi"></option>
-          <option value="Ezan"></option>
-          <option value="Kamet"></option>
-          <option value="Tesbihat"></option>
-        </datalist>
+      <div class="fg">
+        <label class="fl">Ezberlenecek Sure / Dua / Parça Seçin (Birden fazla seçebilirsiniz)</label>
+        <input type="text" id="ezberSearchInput" class="fi" placeholder="Ezber ara... (Enter ile seçime ekleyebilirsiniz)" oninput="filterEzberCheckboxes()" style="margin-bottom: 8px;" autocomplete="off">
+        <div id="ezberCheckboxContainer" style="max-height: 200px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
+          <% 
+            var ezberItems = [
+              "Fâtiha Suresi", "Fil Suresi", "Kureyş Suresi", "Mâûn Suresi", "Kevser Suresi",
+              "Kâfirûn Suresi", "Nasr Suresi", "Tebbet Suresi", "İhlâs Suresi", "Felak Suresi",
+              "Nâs Suresi", "Duhâ Suresi", "İnşirâh Suresi", "Tîn Suresi", "Alak Suresi",
+              "Kadr Suresi", "Beyyine Suresi", "Zilzâl Suresi", "Âdiyât Suresi", "Kâria Suresi",
+              "Tekâsür Suresi", "Asr Suresi", "Hümeze Suresi", "Sübhaneke", "Ettehıyyatü",
+              "Allahümme Salli", "Allahümme Barik", "Rabbena Atina", "Rabbenağfirli",
+              "Kunut Duaları (Kunut 1)", "Kunut Duaları (Kunut 2)", "Ayet'el Kürsi",
+              "Amenerrasulü", "Hüvallahüllezi", "Ezan", "Kamet", "Tesbihat"
+            ];
+          %>
+          <% ezberItems.forEach(function(item) { %>
+            <% 
+              var isCompleted = typeof completedEzbers !== 'undefined' && completedEzbers.includes(item);
+            %>
+            <label class="ezber-checkbox-label" data-name="<%= item.toLowerCase() %>" style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--text); user-select: none; <%= isCompleted ? 'color: #059669; font-weight: 600;' : '' %>">
+              <input type="checkbox" name="ezber_topics" value="<%= item %>" class="ezber-chk" style="width: 16px; height: 16px;">
+              <span>
+                <%= item %>
+                <%= isCompleted ? ' (✓ Ezberledi)' : '' %>
+              </span>
+            </label>
+          <% }); %>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">Meal Durumu</label>
+        <select name="translation_option" class="fi" style="width: 100%;">
+          <option value="mealsiz">Mealsiz (Sadece Arapça Ezber)</option>
+          <option value="mealiyle">Mealiyle (Arapça + Türkçe Meal Ezber)</option>
+          <option value="sadece_meal">Sadece Meali (Sadece Türkçe Meal Ezber)</option>
+        </select>
       </div>
     </div>
 
@@ -150,15 +133,38 @@ function switchTab(type) {
   document.getElementById('elifbaSection').style.display = type === 'elifba' ? 'block' : 'none';
   document.getElementById('ezberSection').style.display = type === 'ezber' ? 'block' : 'none';
   if (type === 'surah') {
+    document.getElementById('surahIdInput').required = true;
     document.getElementById('elifbaTopicInput').required = false;
-    document.getElementById('ezberTopicInput').required = false;
     document.getElementById('hwNotes').value = "";
   } else if (type === 'elifba') {
+    document.getElementById('surahIdInput').required = false;
     document.getElementById('elifbaTopicInput').required = true;
-    document.getElementById('ezberTopicInput').required = false;
   } else if (type === 'ezber') {
+    document.getElementById('surahIdInput').required = false;
     document.getElementById('elifbaTopicInput').required = false;
-    document.getElementById('ezberTopicInput').required = true;
+  }
+}
+
+function onSurahInputChange() {
+  var input = document.getElementById('surahSearchInput');
+  var val = input.value.trim().toLowerCase();
+  var opts = document.getElementById('surahDatalist').options;
+  var idInput = document.getElementById('surahIdInput');
+  
+  idInput.value = "";
+  if (!val) return;
+  
+  for (var i = 0; i < opts.length; i++) {
+    var optValue = opts[i].value;
+    var optId = opts[i].getAttribute('data-id');
+    
+    var cleanOptValue = optValue.toLowerCase();
+    var nameOnly = optValue.substring(optValue.indexOf(' ') + 1).toLowerCase();
+    
+    if (cleanOptValue === val || nameOnly === val || cleanOptValue.indexOf(val) > -1) {
+      idInput.value = optId;
+      break;
+    }
   }
 }
 
@@ -174,9 +180,9 @@ function turkishNormalize(str) {
     .replace(/i̇/g, 'i');
 }
 
-function filterSurahCheckboxes() {
-  var q = turkishNormalize(document.getElementById('surahSearchInput').value.trim());
-  var labels = document.querySelectorAll('.surah-checkbox-label');
+function filterEzberCheckboxes() {
+  var q = turkishNormalize(document.getElementById('ezberSearchInput').value.trim());
+  var labels = document.querySelectorAll('.ezber-checkbox-label');
   
   labels.forEach(function(label) {
     var name = turkishNormalize(label.getAttribute('data-name') || '');
@@ -190,28 +196,28 @@ function filterSurahCheckboxes() {
 
 document.getElementById('homeworkForm').addEventListener('submit', function(e) {
   var type = document.getElementById('hwType').value;
-  if (type === 'surah') {
-    var checked = document.querySelectorAll('input[name="surah_ids"]:checked');
+  if (type === 'ezber') {
+    var checked = document.querySelectorAll('input[name="ezber_topics"]:checked');
     if (checked.length === 0) {
       e.preventDefault();
-      alert('Lütfen en az bir sure seçin.');
+      alert('Lütfen en az bir ezber konusu seçin.');
     }
   }
 });
 
-document.getElementById('surahSearchInput').addEventListener('keydown', function(e) {
+document.getElementById('ezberSearchInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
     var q = turkishNormalize(this.value.trim());
     if (!q) return;
     
-    var labels = document.querySelectorAll('.surah-checkbox-label');
+    var labels = document.querySelectorAll('.ezber-checkbox-label');
     var found = false;
     for (var i = 0; i < labels.length; i++) {
       var label = labels[i];
       var name = turkishNormalize(label.getAttribute('data-name') || '');
       if (name.indexOf(q) > -1) {
-        var chk = label.querySelector('.surah-chk');
+        var chk = label.querySelector('.ezber-chk');
         if (chk && !chk.checked) {
           chk.checked = true;
           found = true;
@@ -222,9 +228,9 @@ document.getElementById('surahSearchInput').addEventListener('keydown', function
     }
     if (found) {
       this.value = "";
-      filterSurahCheckboxes();
+      filterEzberCheckboxes();
     } else {
-      alert("Eşleşen yeni sure bulunamadı.");
+      alert("Eşleşen yeni ezber konusu bulunamadı.");
     }
   }
 });
