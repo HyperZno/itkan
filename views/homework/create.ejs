@@ -6,6 +6,40 @@
   <div><h1 style="font-size:20px;font-weight:700;line-height:1.2">Ödev Ver</h1><span style="font-size:12px;color:var(--text2)"><%= student.name %> <%= student.surname %> • <%= student.class_name %></span></div>
 </div>
 
+<% if (typeof activeHomeworks !== 'undefined' && activeHomeworks.length > 0) { %>
+  <div class="card" style="background: #fffbeb; border: 1px solid #fde68a; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; padding: 16px;">
+    <div style="font-size: 20px; line-height: 1;">⚠️</div>
+    <div>
+      <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #b45309;">Aktif Ödev Uyarısı</h3>
+      <p style="margin: 4px 0 0 0; font-size: 12px; color: #d97706; line-height: 1.5;">
+        Bu öğrencinin henüz tamamlanmamış (çalışmakta olduğu) <strong><%= activeHomeworks.length %></strong> aktif ödevi bulunmaktadır. 
+        Yeni ödev vermeden önce mevcut ödevi kontrol etmek isteyebilirsiniz:
+      </p>
+      <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 12px; color: #d97706;">
+        <% activeHomeworks.forEach(function(hw) { %>
+          <li>
+            <% if (hw.type === 'elifba') { %>
+              Elifba: <%= hw.elifba_topic_text %>
+            <% } else if (hw.type === 'ezber') { %>
+              Ezber: <%= hw.elifba_topic_text %>
+            <% } else { %>
+              <%= hw.surah_name %> Suresi <%= hw.page_number ? '(S. ' + hw.page_number + ')' : '' %>
+            <% } %>
+            <% if (hw.due_date) { %>
+              - Teslim Tarihi: <%= new Date(hw.due_date).toLocaleDateString('tr-TR') %>
+            <% } %>
+          </li>
+        <% }); %>
+      </ul>
+      <div style="margin-top: 12px;">
+        <a href="/ogrenci/<%= student.id %>" class="btn btn-sm" style="background: #b45309; color: #ffffff; border: none; font-size: 11px; padding: 4px 10px; border-radius: 6px; text-decoration: none;">
+          Ödevleri Gör ve Kontrol Et ➔
+        </a>
+      </div>
+    </div>
+  </div>
+<% } %>
+
 <div class="card">
   <div style="display:flex;gap:8px;margin-bottom:20px">
     <button type="button" class="btn btn-p btn-sm" id="tabSurah" onclick="switchTab('surah')" style="flex:1">Sure</button>

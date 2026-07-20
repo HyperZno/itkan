@@ -55,12 +55,20 @@ router.get('/odev/ogrenci/:studentId/ekle', authenticate, async (req, res) => {
     const student = studentRes.rows[0];
     if (!student) return res.status(404).send('Ogrenci bulunamadi');
 
+    const activeHwRes = await db.query(`
+      SELECT h.*, su.name as surah_name 
+      FROM homework h 
+      LEFT JOIN surahs su ON h.surah_id = su.id 
+      WHERE h.student_id = $1 AND h.status = 'in_progress'
+    `, [req.params.studentId]);
+
     const surahsRes = await db.query('SELECT * FROM surahs ORDER BY order_index ASC');
     const elifbaTopicsRes = await db.query('SELECT * FROM elifba_topics ORDER BY lesson_number ASC');
     res.render('homework/create', { 
       student, 
       surahs: surahsRes.rows, 
-      elifbaTopics: elifbaTopicsRes.rows 
+      elifbaTopics: elifbaTopicsRes.rows,
+      activeHomeworks: activeHwRes.rows
     });
   } catch (err) {
     console.error(err);
